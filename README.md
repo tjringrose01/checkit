@@ -23,6 +23,16 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 
 ## Detailed Technical Requirements
 
+### Security Requirements
+
+- The application must be designed and implemented in alignment with OWASP Top 10 secure coding practices.
+- Input validation must always be performed server-side for all user-controlled input.
+- Frontend validation may improve UX, but it must never replace server-side validation.
+- Output encoding, authorization checks, secure session handling, dependency hygiene, and error handling must be implemented with OWASP Top 10 risks in mind.
+- Security-sensitive functionality must default to deny unless explicitly authorized.
+- Secrets must never be stored in source code.
+- Secrets must be injected through environment configuration or CI/CD-managed secret storage.
+
 ### Authentication
 
 - Authentication must use `user_id` and password for login.
@@ -35,6 +45,8 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - `role`
   - `failed_login_attempts`
   - `locked_at`
+  - `last_login_at`
+  - `must_change_password`
   - `created_at`
   - `updated_at`
 - `user_id` must be unique and treated as the primary login identifier.
@@ -43,6 +55,19 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - The application must use authenticated web sessions for protected functionality.
 - Only authenticated users may access checklist functionality.
 - The login form must authenticate with `user_id` and password, not email.
+- `last_login_at` must be recorded after each successful login.
+- The application must support a forced password change flow for users flagged with `must_change_password`.
+
+### Initial Deployment Bootstrap Requirements
+
+- The first application deployment must create an initial administrative user.
+- The initial admin account must use:
+  - `user_id`: `admin`
+  - password: `password`
+- The initial admin account must be marked with `must_change_password = true`.
+- The initial admin user must be required to change the password immediately after the first successful login before accessing the rest of the application.
+- The initial admin bootstrap process must be idempotent and must not create duplicate admin accounts on repeated deployments.
+- The bootstrap implementation must be clearly documented because it intentionally creates a temporary default credential.
 
 ### Password Rules
 
@@ -50,6 +75,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - Password validation must happen server-side.
 - The system should reject obviously weak passwords if a practical Rails-compatible approach is available.
 - Authentication failures must return a generic error message that does not reveal whether the `user_id` or password was incorrect.
+- The password change flow must require the initial default admin password to be replaced with a compliant password.
 
 ### Failed Login Lockout
 
@@ -77,6 +103,9 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - malformed local or domain parts
 - Email length must be capped at a reasonable maximum consistent with common web application practice.
 - Email validation must be implemented in the Rails model layer, not only in the frontend.
+- Outbound email must use the Mailgun API.
+- Mailgun authentication credentials must be provided through CI/CD-managed secrets or runtime environment secrets.
+- Mailgun API keys or tokens must never be committed to the repository or hardcoded in application source.
 
 ### User ID Requirements
 
@@ -108,11 +137,16 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - checklist reference
   - item text
   - sort order
+  - desired completion time
+  - actual completion time when completed
+  - deviation between desired completion time and actual completion time
   - completion state
   - timestamps
 - Checklist completion changes made in the frontend must persist in the backend.
 - The system must define whether completion state is global or per user.
 - The initial implementation should treat checklist item completion as per-user state unless a later requirement overrides that behavior.
+- Deviation from desired completion time to actual completion time must be calculated and displayed to the user.
+- The deviation display must indicate whether completion was early, on time, or late.
 
 ### Management Interface
 
@@ -128,6 +162,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - unlock locked user accounts
 - The initial bulk upload format must be CSV.
 - CSV upload validation must reject malformed files and return actionable validation errors.
+- Bulk upload validation must apply the same server-side validation rules as manual checklist item creation.
 
 ### Frontend Requirements
 
@@ -135,9 +170,11 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - The initial support target should be current Safari on iPhone and current Chrome on Android as of April 23, 2026.
 - The UI must allow users to:
   - sign in with `user_id` and password
+  - complete a forced password change when required
   - view assigned or available checklists
   - check and uncheck checklist items
   - see persisted checklist state after refresh
+  - see desired completion time, actual completion time, and deviation status for checklist items where applicable
 - The admin UI must allow secure checklist and user-management actions appropriate to the `admin` role.
 
 ### Sync Behavior
@@ -163,10 +200,13 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 
 ### Testing And Quality
 
-- Core authentication, authorization, lockout, checklist interaction, and CSV upload behavior must have automated test coverage.
+- Core authentication, authorization, lockout, checklist interaction, CSV upload behavior, and forced password change behavior must have automated test coverage.
 - Model validations for `user_id`, `email`, and password requirements must be tested.
 - Lockout and unlock flows must be tested.
+- Last-login tracking must be tested.
 - Role-based access restrictions must be tested server-side.
+- Validation behavior for both manual entry and CSV upload must be tested.
+- Checklist timing and deviation calculations must be tested.
 
 ## Non-Negotiable Guardrails For AI Agents
 
@@ -181,7 +221,8 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - AI agents must not bypass review intent by pushing directly to protected or long-term branches.
 - AI agents must document substantive requirement clarifications before implementation if those clarifications affect architecture, security, or data behavior.
 - AI agents must preserve server-side enforcement for authentication, authorization, validation, and lockout rules.
-- AI agents must not weaken password, session, validation, or lockout requirements for convenience.
+- AI agents must not weaken password, session, validation, lockout, or secret-management requirements for convenience.
+- AI agents must not hardcode credentials, API keys, tokens, or other secrets in source code.
 
 ## Project Flow
 
@@ -214,8 +255,8 @@ Use descriptive feature branch names, for example:
 ## Suggested Initial Milestones
 
 1. Bootstrap a Rails application and Docker-based local environment.
-2. Define users, roles, checklists, checklist items, and per-user checklist state models.
-3. Implement `user_id` and password authentication with email validation and login lockout protection.
-4. Build checklist viewing and item completion flows.
-5. Build the admin management interface for checklist creation, CSV uploads, and account unlock actions.
-6. Prepare the application for an eventual PostgreSQL migration.
+2. Define users, roles, checklists, checklist items, per-user checklist state, and checklist timing fields.
+3. Implement `user_id` and password authentication with email validation, last-login tracking, forced password change, and login lockout protection.
+4. Build checklist viewing, item completion, and timing deviation display flows.
+5. Build the admin management interface for checklist creation, CSV uploads, account unlock actions, and initial operational management.
+6. Integrate Mailgun using CI/CD-managed secrets and prepare the application for an eventual PostgreSQL migration.
