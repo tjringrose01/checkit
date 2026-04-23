@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Checkit</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta charset="utf-8">
+  </head>
+  <body>
+    <% flash.each do |type, message| %>
+      <p><%= "#{type.to_s.humanize}: #{message}" %></p>
+    <% end %>
+
+    <%= yield %>
+  </body>
+</html>
