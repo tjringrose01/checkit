@@ -95,6 +95,9 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - Email addresses must be normalized before storage:
   - trim surrounding whitespace
   - convert to lowercase
+- Email validation must be guided by RFC 5321 and RFC 5322.
+- The implementation may use a practical validation subset rather than supporting every RFC-permitted edge case.
+- The accepted validation strategy must favor deliverability, interoperability, and predictable application behavior over exhaustive acceptance of obscure but technically valid address formats.
 - Email format must be validated server-side.
 - Validation must reject clearly invalid addresses, including:
   - missing `@`
