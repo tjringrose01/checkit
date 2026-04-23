@@ -1,0 +1,7 @@
+<section>
+  <h1>Checkit</h1>
+  <p>Signed in as <strong><%= current_user.user_id %></strong>.</p>
+  <p>This scaffold will expand into the checklist management and completion experience.</p>
+
+  <%= button_to "Sign out", session_path, method: :delete %>
+</section>
