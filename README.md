@@ -168,6 +168,21 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - Lockout and unlock flows must be tested.
 - Role-based access restrictions must be tested server-side.
 
+## Non-Negotiable Guardrails For AI Agents
+
+- AI agents may implement changes only on `dev` or on feature branches created from `dev`.
+- AI agents must never implement directly on `main`.
+- AI agents must never merge, promote, or move work into `main`.
+- Promotion from `dev` to `main` is reserved for the repository owner only.
+- All AI-generated feature work must flow through a pull request into `dev`.
+- AI agents must treat `main` as read-only except for inspection.
+- AI agents must not change branch protection rules, default branch settings, or repository governance without explicit instruction from the repository owner.
+- AI agents must not delete branches or rewrite branch history without explicit instruction from the repository owner.
+- AI agents must not bypass review intent by pushing directly to protected or long-term branches.
+- AI agents must document substantive requirement clarifications before implementation if those clarifications affect architecture, security, or data behavior.
+- AI agents must preserve server-side enforcement for authentication, authorization, validation, and lockout rules.
+- AI agents must not weaken password, session, validation, or lockout requirements for convenience.
+
 ## Project Flow
 
 This repository should follow a controlled branch strategy.
@@ -176,7 +191,8 @@ This repository should follow a controlled branch strategy.
 - `dev` is the integration branch for active development.
 - Feature work should be done in short-lived branches created from `dev`.
 - Feature branches should open pull requests into `dev`.
-- Work should not be merged directly into `main` as part of normal feature delivery.
+- Routine development work must not be merged directly into `main`.
+- Movement from `dev` to `main` is performed only by the repository owner.
 
 ### Branch Naming
 
@@ -193,6 +209,7 @@ Use descriptive feature branch names, for example:
 3. Implement and test the change in the feature branch.
 4. Open a pull request from the feature branch into `dev`.
 5. Keep `main` isolated from routine development work.
+6. The repository owner decides if and when `dev` changes move to `main`.
 
 ## Suggested Initial Milestones
 
