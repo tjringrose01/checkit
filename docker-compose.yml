@@ -9,6 +9,7 @@ services:
       BINDING: 0.0.0.0
       PORT: 3000
       SECRET_KEY_BASE: development-secret-key-base
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
     ports:
       - "3000:3000"
     volumes:
