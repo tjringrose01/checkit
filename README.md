@@ -25,11 +25,11 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 
 This repository should follow a controlled branch strategy.
 
-- `master` is the protected long-term branch.
+- `main` is the default branch and the long-term protected branch.
 - `dev` is the integration branch for active development.
 - Feature work should be done in short-lived branches created from `dev`.
 - Feature branches should open pull requests into `dev`.
-- Work should not be merged directly into `master` as part of normal feature delivery.
+- Work should not be merged directly into `main` as part of normal feature delivery.
 
 ### Branch Naming
 
@@ -45,7 +45,7 @@ Use descriptive feature branch names, for example:
 2. Create a feature branch for a focused piece of work.
 3. Implement and test the change in the feature branch.
 4. Open a pull request from the feature branch into `dev`.
-5. Keep `master` isolated from routine development work.
+5. Keep `main` isolated from routine development work.
 
 ## Suggested Initial Milestones
 
