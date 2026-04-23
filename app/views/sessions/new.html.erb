@@ -1,0 +1,17 @@
+<section>
+  <h1>Sign In</h1>
+
+  <%= form_with url: session_path, method: :post do |form| %>
+    <div>
+      <%= form.label :user_id %>
+      <%= form.text_field :user_id, required: true, autocomplete: "username" %>
+    </div>
+
+    <div>
+      <%= form.label :password %>
+      <%= form.password_field :password, required: true, autocomplete: "current-password" %>
+    </div>
+
+    <%= form.submit "Sign in" %>
+  <% end %>
+</section>
