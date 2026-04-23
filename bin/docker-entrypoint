@@ -5,6 +5,7 @@ bundle check || bundle install
 
 if [ -f "bin/rails" ]; then
   bundle exec rails db:prepare
+  bundle exec rails db:seed
 fi
 
 exec "$@"
