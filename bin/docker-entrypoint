@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+bundle check || bundle install
+
+if [ -f "bin/rails" ]; then
+  bundle exec rails db:prepare
+fi
+
+exec "$@"

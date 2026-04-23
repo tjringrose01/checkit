@@ -255,6 +255,31 @@ Use descriptive feature branch names, for example:
 5. Keep `main` isolated from routine development work.
 6. The repository owner decides if and when `dev` changes move to `main`.
 
+## Local Development
+
+Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
+
+### Current Bootstrap Contents
+
+- Ruby on Rails application skeleton
+- SQLite configuration for development and test
+- Dockerfile for containerized development
+- `docker-compose.yml` for local startup
+- Basic health endpoint at `/` and `/up`
+
+### Start The App
+
+1. Ensure Docker and Docker Compose are installed on the machine where you run the app.
+2. From the repository root, run `docker compose up --build`.
+3. Open `http://localhost:3000`.
+4. Confirm the health endpoint responds at `http://localhost:3000/up`.
+
+### Notes
+
+- The current scaffold is intentionally minimal so later issues can add authentication, data models, and UI flows incrementally.
+- SQLite is used for the initial setup, but the file layout and config are structured so PostgreSQL migration can happen in a later issue.
+- All implementation work must remain on `dev` or feature branches created from `dev`.
+
 ## Suggested Initial Milestones
 
 1. Bootstrap a Rails application and Docker-based local environment.
