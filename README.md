@@ -270,15 +270,19 @@ Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
 ### Start The App
 
 1. Ensure Docker and Docker Compose are installed on the machine where you run the app.
-2. From the repository root, run `docker compose up --build`.
-3. Open `http://localhost:3000`.
-4. Confirm the health endpoint responds at `http://localhost:3000/up`.
+2. Set `BOOTSTRAP_ADMIN_PASSWORD` in the shell before startup if you want the initial admin account to be created.
+3. From the repository root, run `docker compose up --build`.
+4. Open `http://localhost:3000`.
+5. Confirm the health endpoint responds at `http://localhost:3000/up`.
 
 ### Notes
 
 - The current scaffold is intentionally minimal so later issues can add authentication, data models, and UI flows incrementally.
 - SQLite is used for the initial setup, but the file layout and config are structured so PostgreSQL migration can happen in a later issue.
 - All implementation work must remain on `dev` or feature branches created from `dev`.
+- Container startup runs `db:prepare` and `db:seed`, which bootstraps the initial admin account required by the project requirements.
+- The bootstrap admin account uses `user_id` `admin`, reads its initial password from `BOOTSTRAP_ADMIN_PASSWORD`, and is flagged to force an immediate password change after first sign-in.
+- The password is not committed to source control. Set it through environment configuration when the container starts.
 
 ## Suggested Initial Milestones
 
