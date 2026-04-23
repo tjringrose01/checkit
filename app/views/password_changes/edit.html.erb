@@ -2,7 +2,7 @@
   <h1>Change Password</h1>
   <p>You must update your password before continuing.</p>
 
-  <%= form_with model: :password_change, url: password_change_path, method: :patch do |form| %>
+  <%= form_with scope: :password_change, url: password_change_path, method: :patch do |form| %>
     <div>
       <%= form.label :current_password %>
       <%= form.password_field :current_password, required: true, autocomplete: "current-password" %>

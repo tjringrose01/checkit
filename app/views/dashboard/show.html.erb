@@ -1,7 +1,70 @@
-<section>
-  <h1>Checkit</h1>
-  <p>Signed in as <strong><%= current_user.user_id %></strong>.</p>
-  <p>This scaffold will expand into the checklist management and completion experience.</p>
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Checklist Workspace</p>
+    <h1>Checkit</h1>
+    <p>Signed in as <strong><%= current_user.user_id %></strong>.</p>
+    <% if current_user.admin? %>
+      <p><%= link_to "Open Admin Workspace", admin_root_path %></p>
+    <% end %>
+  </div>
 
-  <%= button_to "Sign out", session_path, method: :delete %>
+  <%= button_to "Sign out", session_path, method: :delete, class: "secondary-button" %>
+</section>
+
+<section class="checklists">
+  <% if @checklists.any? %>
+    <% @checklists.each do |checklist| %>
+      <article class="checklist-card">
+        <header class="checklist-card__header">
+          <div>
+            <p class="eyebrow"><%= checklist.status.titleize %> Checklist</p>
+            <h2><%= checklist.title %></h2>
+          </div>
+
+          <% if checklist.notes.present? %>
+            <p class="checklist-card__notes"><%= checklist.notes %></p>
+          <% end %>
+        </header>
+
+        <ul class="checklist-items">
+          <% checklist.checklist_items.each do |checklist_item| %>
+            <% completion = checklist_completion_for(checklist_item) %>
+            <% completed = completion&.completed? %>
+
+            <li class="checklist-item <%= "checklist-item--complete" if completed %>">
+              <div class="checklist-item__content">
+                <h3><%= checklist_item.item_text %></h3>
+                <dl>
+                  <div>
+                    <dt>Desired</dt>
+                    <dd><%= formatted_checklist_time(checklist_item.desired_completion_at) %></dd>
+                  </div>
+                  <div>
+                    <dt>Actual</dt>
+                    <dd><%= formatted_checklist_time(completion&.actual_completed_at) %></dd>
+                  </div>
+                  <div>
+                    <dt>Deviation</dt>
+                    <dd><%= formatted_deviation(completion) %></dd>
+                  </div>
+                </dl>
+              </div>
+
+              <%= button_to checklist_item_completion_path(checklist_item),
+                            method: :patch,
+                            params: { completed: !completed },
+                            class: completed ? "secondary-button" : "primary-button" do %>
+                <%= completed ? "Mark Incomplete" : "Complete Item" %>
+              <% end %>
+            </li>
+          <% end %>
+        </ul>
+      </article>
+    <% end %>
+  <% else %>
+    <article class="empty-state">
+      <h2>No active checklists yet</h2>
+      <p>Active checklists will appear here once an administrator publishes them.</p>
+    </article>
+  <% end %>
 </section>
