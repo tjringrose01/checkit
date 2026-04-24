@@ -68,6 +68,10 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - The initial admin user must be required to change the password immediately after the first successful login before accessing the rest of the application.
 - The initial admin bootstrap process must be idempotent and must not create duplicate admin accounts on repeated deployments.
 - The bootstrap implementation must be clearly documented because it intentionally creates a temporary default credential.
+- Implementation clarification:
+  - the app reads `BOOTSTRAP_ADMIN_PASSWORD` from runtime environment configuration
+  - the bootstrap password is not hardcoded in source control
+  - if you need to mirror the original issue text exactly, set `BOOTSTRAP_ADMIN_PASSWORD=password` before startup
 
 ### Password Rules
 
@@ -166,6 +170,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - The initial bulk upload format must be CSV.
 - CSV upload validation must reject malformed files and return actionable validation errors.
 - Bulk upload validation must apply the same server-side validation rules as manual checklist item creation.
+- The current implementation also sends an account-unlocked email when an Admin unlocks a locked user.
 
 ### Frontend Requirements
 
@@ -265,7 +270,11 @@ Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
 - SQLite configuration for development and test
 - Dockerfile for containerized development
 - `docker-compose.yml` for local startup
-- Basic health endpoint at `/` and `/up`
+- Health endpoint at `/up`
+- Session-based authentication with forced password change and lockout protection
+- Responsive user checklist dashboard with per-user completion state and timing deviation display
+- Admin checklist management, checklist item management, CSV upload, and account unlock flow
+- Action Mailer Mailgun delivery support via runtime environment secrets
 
 ### Start The App
 
@@ -275,14 +284,84 @@ Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
 4. Open `http://localhost:3000`.
 5. Confirm the health endpoint responds at `http://localhost:3000/up`.
 
+### Runtime Environment Variables
+
+- `BOOTSTRAP_ADMIN_PASSWORD`: creates the initial `admin` user when missing and flags that account for immediate password change
+- `MAILGUN_API_KEY`: Mailgun private API key
+- `MAILGUN_DOMAIN`: Mailgun sending domain
+- `MAILGUN_FROM_ADDRESS`: optional sender address; defaults to `postmaster@MAILGUN_DOMAIN`
+- `MAILGUN_BASE_URL`: optional Mailgun API base URL; defaults to `https://api.mailgun.net`
+  - use `https://api.eu.mailgun.net` for EU-region domains
+
+### Run Tests
+
+1. From the repository root, run `docker compose run --rm -e RAILS_ENV=test web bin/rails test`
+
+### Jenkins Container Build And Push
+
+- The repository includes a `Jenkinsfile` that:
+  1. checks out the branch Jenkins is building
+  2. builds the application container from `Dockerfile`
+  3. tags the image with the short Git SHA and sanitized branch name
+  4. logs into the Docker registry with Jenkins-managed credentials
+  5. pushes both tags to the configured repository
+
+#### Jenkins Configuration
+
+Create these Jenkins pipeline environment variables:
+
+- `DOCKER_REGISTRY`
+  - Example for Docker Hub: `docker.io`
+  - Example for a private registry: `registry.example.com`
+- `DOCKER_IMAGE_REPOSITORY`
+  - Example for Docker Hub: `your-org/checkit`
+  - Example for a private registry: `platform/checkit`
+- `DOCKER_CREDENTIALS_ID`
+  - Jenkins credentials ID for the registry login
+  - Default expected by the `Jenkinsfile`: `docker-registry-credentials`
+
+#### Create The Jenkins Secret
+
+1. In Jenkins, open `Manage Jenkins` > `Credentials`.
+2. Choose the credential store and domain used by the pipeline.
+3. Click `Add Credentials`.
+4. Set `Kind` to `Username with password`.
+5. Enter the Docker registry username.
+6. Enter the Docker registry password or access token.
+7. Set `ID` to the value used by `DOCKER_CREDENTIALS_ID`.
+   Example: `docker-registry-credentials`
+8. Save the credential.
+
+#### Create The Jenkins Job
+
+1. Create a `Pipeline` job or a multibranch pipeline pointed at this repository.
+2. Ensure the Jenkins agent has Docker CLI access and permission to run `docker build`, `docker login`, and `docker push`.
+3. Set the environment variables above in the job configuration or folder configuration.
+4. Run the pipeline.
+
+#### Resulting Image Tags
+
+- `${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPOSITORY}:${short_git_sha}`
+- `${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPOSITORY}:${branch_name}`
+
+### MVP Status
+
+- The current branch implements the MVP scaffold, authentication flows, checklist interaction flow, admin management flow, CSV import flow, and Mailgun-backed outbound email configuration.
+- Automated verification currently passes with `docker compose run --rm -e RAILS_ENV=test web bin/rails test`.
+- Runtime verification currently passes with:
+  1. `docker compose up -d`
+  2. `curl http://localhost:3000/up`
+  3. expected response: `{"status":"ok","service":"checkit"}`
+  4. `docker compose down`
+
 ### Notes
 
-- The current scaffold is intentionally minimal so later issues can add authentication, data models, and UI flows incrementally.
 - SQLite is used for the initial setup, but the file layout and config are structured so PostgreSQL migration can happen in a later issue.
 - All implementation work must remain on `dev` or feature branches created from `dev`.
 - Container startup runs `db:prepare` and `db:seed`, which bootstraps the initial admin account required by the project requirements.
 - The bootstrap admin account uses `user_id` `admin`, reads its initial password from `BOOTSTRAP_ADMIN_PASSWORD`, and is flagged to force an immediate password change after first sign-in.
 - The password is not committed to source control. Set it through environment configuration when the container starts.
+- Mailgun delivery uses the official HTTP API endpoints at `/v3/{domain}/messages` and requires runtime secrets rather than committed credentials.
 
 ## Suggested Initial Milestones
 

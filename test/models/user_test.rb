@@ -1,12 +1,60 @@
 require "test_helper"
 
 class UserTest < ActiveSupport::TestCase
+  test "normalizes identity fields before validation" do
+    user = User.create!(
+      user_id: "  Member.01  ",
+      email: "  MEMBER01@Example.COM ",
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123"
+    )
+
+    assert_equal "member.01", user.user_id
+    assert_equal "member01@example.com", user.email
+  end
+
+  test "rejects invalid user_id format" do
+    user = User.new(
+      user_id: "bad id",
+      email: "member03@example.com",
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123"
+    )
+
+    assert_not user.valid?
+    assert_includes user.errors[:user_id], "is invalid"
+  end
+
+  test "rejects invalid email format" do
+    user = User.new(
+      user_id: "member03",
+      email: "invalid-email",
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123"
+    )
+
+    assert_not user.valid?
+    assert_includes user.errors[:email], "is invalid"
+  end
+
+  test "rejects obviously weak passwords" do
+    user = User.new(
+      user_id: "member04",
+      email: "member04@example.com",
+      password: "password12345",
+      password_confirmation: "password12345"
+    )
+
+    assert_not user.valid?
+    assert_includes user.errors[:password], "is too weak"
+  end
+
   test "locks after more than five failed attempts" do
     user = User.create!(
       user_id: "member01",
       email: "member01@example.com",
-      password: "password12345",
-      password_confirmation: "password12345"
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123"
     )
 
     6.times { user.record_failed_login! }
@@ -20,8 +68,8 @@ class UserTest < ActiveSupport::TestCase
     user = User.create!(
       user_id: "member02",
       email: "member02@example.com",
-      password: "password12345",
-      password_confirmation: "password12345",
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123",
       failed_login_attempts: 4
     )
 
@@ -30,5 +78,34 @@ class UserTest < ActiveSupport::TestCase
 
     assert_equal 0, user.failed_login_attempts
     assert_not_nil user.last_login_at
+  end
+
+  test "unlock_access clears lock state" do
+    user = User.create!(
+      user_id: "member05",
+      email: "member05@example.com",
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123",
+      failed_login_attempts: 6,
+      locked_at: Time.current
+    )
+
+    user.unlock_access!
+    user.reload
+
+    assert_equal 0, user.failed_login_attempts
+    assert_nil user.locked_at
+  end
+
+  test "enabled defaults to true" do
+    user = User.create!(
+      user_id: "member06",
+      email: "member06@example.com",
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123"
+    )
+
+    assert_equal true, user.enabled
+    assert user.enabled_for_authentication?
   end
 end

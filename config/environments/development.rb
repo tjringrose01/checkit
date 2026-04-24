@@ -8,9 +8,18 @@ Rails.application.configure do
   config.active_storage.service = :local
   config.action_mailer.raise_delivery_errors = false
   config.action_mailer.perform_caching = false
+  if config.x.mailgun.enabled
+    config.action_mailer.delivery_method = :mailgun_api
+    config.action_mailer.mailgun_api_settings = {
+      api_key: config.x.mailgun.api_key,
+      domain: config.x.mailgun.domain,
+      base_url: config.x.mailgun.base_url
+    }
+  else
+    config.action_mailer.delivery_method = :test
+  end
   config.active_support.deprecation = :log
   config.active_record.migration_error = :page_load
   config.active_record.verbose_query_logs = true
-  config.assets.quiet = true
   config.hosts.clear
 end

@@ -12,6 +12,11 @@ class SessionsController < ApplicationController
   def create
     user = User.find_by(user_id: normalized_user_id)
 
+    if user && !user.enabled_for_authentication?
+      redirect_to new_session_path, alert: "Invalid credentials or account unavailable."
+      return
+    end
+
     if user&.locked?
       handle_failed_authentication(user)
       return

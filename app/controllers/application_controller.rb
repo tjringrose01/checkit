@@ -22,9 +22,15 @@ class ApplicationController < ActionController::Base
 
   def require_password_change
     return unless authenticated?
-    return if current_user.must_change_password?
+    return unless current_user.must_change_password?
     return if request.path == edit_password_change_path
 
     redirect_to edit_password_change_path, alert: "You must change your password before continuing."
+  end
+
+  def require_admin
+    return if authenticated? && current_user.admin?
+
+    redirect_to root_path, alert: "Administrator access is required."
   end
 end
