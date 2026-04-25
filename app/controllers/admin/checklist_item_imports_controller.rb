@@ -5,9 +5,9 @@ module Admin
       import = ChecklistItemCsvImport.new(checklist:, file: params[:file])
 
       if import.call
-        redirect_to admin_checklists_path, notice: "Checklist items imported."
+        redirect_to admin_checklist_path(checklist), notice: "Checklist items imported."
       else
-        redirect_to admin_checklists_path, alert: import.errors.to_sentence
+        redirect_to admin_checklist_path(checklist), alert: import.errors.to_sentence
       end
     end
   end

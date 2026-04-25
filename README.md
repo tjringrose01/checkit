@@ -7,9 +7,18 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 1. Backend Framework: Build the backend in Ruby on Rails and run it in a containerized environment such as Docker.
 2. Database: Start with SQLite for lightweight local storage, while keeping the application compatible with a future migration to PostgreSQL.
 3. Web Frontend: Build a responsive web frontend using a modern framework such as React or Vue. The interface must work well in iPhone and Android browsers.
-4. Checklist Interaction: Users must be able to view checklist items, check them off, and have those changes synced with the backend.
+4. Checklist Interaction: The main user landing page must show a list of available checklists. Users must be able to open a specific checklist, view only that checklist's items, check them off, and have those changes synced with the backend.
    - Checklist item content should support rendering stored HTML in the application UI.
+   - Each checklist must have a start time.
+   - Each checklist item's desired time must be stored as a number of minutes relative to the checklist start time.
+   - Checklist start time is time-of-day only and must not depend on a stored date.
+   - The application must accept checklist start times such as `7:00 PM`.
+   - Displayed checklist times must render in the browser's local time rather than fixed UTC output.
+   - Unless otherwise specified, displayed times must use the format `MM/DD/YY hh:mm AM/PM TZ`.
 5. Management Interface: Authorized users must have a secure web interface for uploading and managing checklist items.
+   - The admin workspace must start with a list of checklists.
+   - Admin users must open a specific checklist before managing that checklist's items.
+   - Checklist metadata editing and checklist item management must happen from the same checklist workspace rather than separate admin pages.
 6. User Roles: Support at least two roles:
    - Checklist Creator / Admin: can create and manage checklists.
    - User: can view and interact with checklists.
@@ -141,12 +150,13 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - title
   - description or notes field
   - status flag such as active/inactive
+  - start time
   - timestamps
 - A checklist item must have at least:
   - checklist reference
   - item text
   - sort order
-  - desired completion time
+  - desired completion offset in minutes from the checklist start time
   - actual completion time when completed
   - deviation between desired completion time and actual completion time
   - completion state
@@ -154,6 +164,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - Checklist completion changes made in the frontend must persist in the backend.
 - The system must define whether completion state is global or per user.
 - The initial implementation should treat checklist item completion as per-user state unless a later requirement overrides that behavior.
+- Deviation calculations must treat checklist start time as time-of-day only and compare item target time against the actual completion date.
 - Deviation from desired completion time to actual completion time must be calculated and displayed to the user.
 - The deviation display must indicate whether completion was early, on time, or late.
 
@@ -161,6 +172,9 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 
 - The management interface must be accessible only to authenticated `admin` users.
 - Admin users must be able to:
+  - start from a checklist list view in the admin workspace
+  - open a specific checklist to manage its items
+  - edit checklist title, status, notes, and start time from that same checklist workspace
   - create checklists
   - edit checklists
   - delete checklists
@@ -181,11 +195,15 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - The UI must allow users to:
   - sign in with `user_id` and password
   - complete a forced password change when required
-  - view assigned or available checklists
+  - view assigned or available checklists as a checklist list page
+  - open a specific checklist and see only that checklist's items
   - check and uncheck checklist items
   - see persisted checklist state after refresh
   - see desired completion time, actual completion time, and deviation status for checklist items where applicable
 - The admin UI must allow secure checklist and user-management actions appropriate to the `admin` role.
+- Admin checklist forms must use browser-compatible AM/PM time input formatting so checklist start times render and submit correctly.
+- Checklist time displays must use browser-local rendering for start, scheduled, and actual completion times.
+- Unless otherwise specified, checklist time displays must render as `MM/DD/YY hh:mm AM/PM TZ` in the browser timezone.
 
 ### Sync Behavior
 
@@ -213,7 +231,7 @@ To keep the schema readable and PostgreSQL-friendly, database objects should fol
 - Use plural nouns for table names.
   Examples: `users`, `checklists`, `checklist_items`
 - Use descriptive column names rather than abbreviations where practical.
-  Examples: `failed_login_attempts`, `desired_completion_at`, `must_change_password`
+  Examples: `failed_login_attempts`, `desired_completion_offset_minutes`, `must_change_password`
 - Prefer `{table_name}_id` for primary key columns in new tables when that does not conflict with existing framework conventions.
 - Use `{referenced_table_singular}_id` for foreign key columns.
   Examples: `user_id`, `checklist_id`, `checklist_item_id`
@@ -242,6 +260,8 @@ Reference used for these conventions:
 - Role-based access restrictions must be tested server-side.
 - Validation behavior for both manual entry and CSV upload must be tested.
 - Checklist timing and deviation calculations must be tested.
+- Regression tests must cover checklist time rendering and submission, including browser-safe AM/PM time input formatting and non-Time-backed values used during rendering.
+- Regression tests must cover browser-local time markup for displayed checklist times.
 
 ## Non-Negotiable Guardrails For AI Agents
 
@@ -323,6 +343,18 @@ Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
 ### Run Tests
 
 1. From the repository root, run `docker compose run --rm -e RAILS_ENV=test web bin/rails test`
+2. For focused regression coverage around checklist timing and admin rendering, run:
+   `docker compose run --rm -e RAILS_ENV=test web bin/rails test test/models/checklist_item_test.rb test/models/checklist_item_completion_test.rb test/integration/checklist_completion_flow_test.rb test/integration/admin_management_flow_test.rb`
+3. Run targeted suites after changing specific areas:
+   - checklist timing or scheduling logic:
+     `docker compose run --rm -e RAILS_ENV=test web bin/rails test test/models/checklist_item_test.rb test/models/checklist_item_completion_test.rb`
+   - user checklist rendering and completion flow:
+     `docker compose run --rm -e RAILS_ENV=test web bin/rails test test/integration/checklist_completion_flow_test.rb`
+   - admin checklist rendering, editing, and CSV flow:
+     `docker compose run --rm -e RAILS_ENV=test web bin/rails test test/integration/admin_management_flow_test.rb`
+4. When changing schema or time-related behavior, run migrations before testing:
+   `docker compose run --rm web bin/rails db:migrate`
+5. If a bug appears only during page rendering, add or update an integration or model regression test before closing the issue.
 
 ### Jenkins Container Build And Push
 

@@ -1,17 +1,44 @@
 <section class="page-header">
   <div>
     <p class="eyebrow">Admin Workspace</p>
-    <h1>Checklist Manager</h1>
-    <p>Create checklists, manage items, and upload CSV rows into an existing checklist.</p>
+    <h1>Checklist Catalog</h1>
+    <p>Start with a checklist, then open it to manage its items and CSV imports.</p>
   </div>
 
   <div class="admin-actions">
-    <%= link_to "Admin Home", admin_root_path, class: "secondary-link" %>
+    <%= link_to "Back To User View", root_path, class: "secondary-link" %>
     <%= link_to "New Checklist", new_admin_checklist_path, class: "primary-link" %>
   </div>
 </section>
 
 <section class="checklists">
+  <article class="checklist-card">
+    <header class="checklist-card__header">
+      <div>
+        <p class="eyebrow">Locked Accounts</p>
+        <h2>User Access</h2>
+      </div>
+    </header>
+
+    <% if @locked_users.any? %>
+      <ul class="checklist-items">
+        <% @locked_users.each do |user| %>
+          <li class="checklist-item">
+            <div class="checklist-item__content">
+              <h3><%= user.user_id %></h3>
+              <p><%= user.email %></p>
+              <p>Failed attempts: <%= user.failed_login_attempts %></p>
+            </div>
+
+            <%= button_to "Unlock User", unlock_admin_user_path(user), method: :patch, class: "primary-button" %>
+          </li>
+        <% end %>
+      </ul>
+    <% else %>
+      <p>No locked users.</p>
+    <% end %>
+  </article>
+
   <% @checklists.each do |checklist| %>
     <article class="checklist-card">
       <header class="checklist-card__header">
@@ -20,41 +47,16 @@
           <h2><%= checklist.title %></h2>
         </div>
 
-        <div class="admin-actions">
-          <%= link_to "Edit", edit_admin_checklist_path(checklist), class: "secondary-link" %>
-          <%= button_to "Delete", admin_checklist_path(checklist), method: :delete, class: "secondary-button" %>
-        </div>
+        <p><%= pluralize(checklist.checklist_items.count, "item") %></p>
       </header>
 
       <% if checklist.notes.present? %>
         <p><%= checklist.notes %></p>
       <% end %>
 
-      <ul class="checklist-items">
-        <% checklist.checklist_items.each do |checklist_item| %>
-          <li class="checklist-item">
-            <div class="checklist-item__content">
-              <div class="checklist-item__text"><%= render_checklist_item_content(checklist_item) %></div>
-              <p>Sort order: <%= checklist_item.sort_order %></p>
-              <p>Desired: <%= formatted_checklist_time(checklist_item.desired_completion_at) %></p>
-            </div>
-
-            <div class="admin-actions">
-              <%= link_to "Edit Item", edit_admin_checklist_checklist_item_path(checklist, checklist_item), class: "secondary-link" %>
-              <%= button_to "Delete Item", admin_checklist_checklist_item_path(checklist, checklist_item), method: :delete, class: "secondary-button" %>
-            </div>
-          </li>
-        <% end %>
-      </ul>
-
-      <div class="admin-panel">
-        <%= link_to "Add Item", new_admin_checklist_checklist_item_path(checklist), class: "primary-link" %>
-
-        <%= form_with url: admin_checklist_checklist_item_import_path(checklist), multipart: true, class: "csv-form" do |form| %>
-          <%= form.label :file, "CSV import" %>
-          <%= form.file_field :file, accept: ".csv,text/csv", required: true %>
-          <%= form.submit "Import CSV", class: "secondary-button" %>
-        <% end %>
+      <div class="admin-actions">
+        <%= link_to "Open Checklist", admin_checklist_path(checklist), class: "primary-link" %>
+        <%= button_to "Delete", admin_checklist_path(checklist), method: :delete, class: "secondary-button" %>
       </div>
     </article>
   <% end %>

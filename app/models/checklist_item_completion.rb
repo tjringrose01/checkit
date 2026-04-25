@@ -31,7 +31,7 @@ class ChecklistItemCompletion < ApplicationRecord
       return
     end
 
-    desired_completion_at = checklist_item&.desired_completion_at
+    desired_completion_at = checklist_item&.desired_completion_at(reference_time: actual_completed_at)
     self.completion_deviation_seconds =
       if desired_completion_at.present?
         actual_completed_at.to_i - desired_completion_at.to_i

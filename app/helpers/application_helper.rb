@@ -29,10 +29,62 @@ module ApplicationHelper
     )
   end
 
-  def formatted_checklist_time(value)
+  def browser_local_time(value)
     return "Not set" if value.blank?
 
-    value.in_time_zone("UTC").strftime("%Y-%m-%d %H:%M UTC")
+    time_value =
+      case value
+      when String
+        Time.zone.parse(value)
+      else
+        value.in_time_zone
+      end
+
+    return "Not set" if time_value.blank?
+
+    iso_value = time_value.iso8601
+
+    content_tag(
+      :time,
+      time_value.strftime("%Y-%m-%d %H:%M"),
+      datetime: iso_value,
+      data: { local_datetime: iso_value }
+    )
+  end
+
+  def browser_local_clock_time(value)
+    return "Not set" if value.blank?
+
+    time_value =
+      case value
+      when String
+        Time.zone.parse(value)
+      else
+        value.in_time_zone
+      end
+
+    return "Not set" if time_value.blank?
+
+    iso_value = time_value.iso8601
+
+    content_tag(
+      :time,
+      time_value.strftime("%I:%M %p"),
+      datetime: iso_value,
+      data: { local_datetime: iso_value, local_format: "time" }
+    )
+  end
+
+  def formatted_checklist_offset(minutes)
+    return "Not set" if minutes.blank? && minutes != 0
+
+    "#{minutes} minute#{'s' unless minutes.to_i == 1} from start"
+  end
+
+  def time_field_value(value)
+    return if value.blank?
+
+    value.in_time_zone("UTC").strftime("%I:%M %p")
   end
 
   def formatted_deviation(completion)

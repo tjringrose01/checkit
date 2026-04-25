@@ -11,7 +11,7 @@ module Admin
       @checklist_item = @checklist.checklist_items.new(checklist_item_params)
 
       if @checklist_item.save
-        redirect_to admin_checklists_path, notice: "Checklist item created."
+        redirect_to admin_checklist_path(@checklist), notice: "Checklist item created."
       else
         render :new, status: :unprocessable_entity
       end
@@ -21,7 +21,7 @@ module Admin
 
     def update
       if @checklist_item.update(checklist_item_params)
-        redirect_to admin_checklists_path, notice: "Checklist item updated."
+        redirect_to admin_checklist_path(@checklist), notice: "Checklist item updated."
       else
         render :edit, status: :unprocessable_entity
       end
@@ -29,7 +29,7 @@ module Admin
 
     def destroy
       @checklist_item.destroy
-      redirect_to admin_checklists_path, notice: "Checklist item deleted."
+      redirect_to admin_checklist_path(@checklist), notice: "Checklist item deleted."
     end
 
     private
@@ -43,7 +43,7 @@ module Admin
     end
 
     def checklist_item_params
-      params.require(:checklist_item).permit(:item_text, :sort_order, :desired_completion_at)
+      params.require(:checklist_item).permit(:item_text, :sort_order, :desired_completion_offset_minutes)
     end
   end
 end

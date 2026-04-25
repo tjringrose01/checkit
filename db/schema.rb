@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_04_25_010000) do
+ActiveRecord::Schema[7.1].define(version: 2026_04_25_020000) do
   create_table "checklist_item_completions", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "checklist_item_id", null: false
@@ -28,9 +28,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_25_010000) do
     t.integer "checklist_id", null: false
     t.text "item_text", null: false
     t.integer "sort_order", default: 0, null: false
-    t.datetime "desired_completion_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "desired_completion_offset_minutes", default: 0, null: false
     t.index ["checklist_id", "sort_order"], name: "idx_checklist_items_checklist_id_sort_order"
     t.index ["checklist_id"], name: "idx_checklist_items_checklist_id"
   end
@@ -41,6 +41,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_25_010000) do
     t.string "status", default: "active", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "start_at", null: false
     t.index ["status"], name: "idx_checklists_status"
   end
 

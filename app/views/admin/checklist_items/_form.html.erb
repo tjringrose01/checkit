@@ -17,13 +17,13 @@
     </div>
 
     <div>
-      <%= form.label :desired_completion_at %>
-      <%= form.datetime_field :desired_completion_at %>
+      <%= form.label :desired_completion_offset_minutes, "Desired time in minutes from checklist start" %>
+      <%= form.number_field :desired_completion_offset_minutes, min: 0, required: true %>
     </div>
   </div>
 
   <div class="admin-actions">
     <%= form.submit class: "primary-button" %>
-    <%= link_to "Cancel", admin_checklists_path, class: "secondary-link" %>
+    <%= link_to "Cancel", admin_checklist_path(checklist), class: "secondary-link" %>
   </div>
 <% end %>

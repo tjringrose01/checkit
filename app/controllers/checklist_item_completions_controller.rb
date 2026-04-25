@@ -8,9 +8,9 @@ class ChecklistItemCompletionsController < ApplicationController
     completion.actual_completed_at = completed_param? ? Time.current : nil
 
     if completion.save
-      redirect_to root_path, notice: "Checklist item updated."
+      redirect_to checklist_path(checklist_item.checklist), notice: "Checklist item updated."
     else
-      redirect_to root_path, alert: completion.errors.full_messages.to_sentence
+      redirect_to checklist_path(checklist_item.checklist), alert: completion.errors.full_messages.to_sentence
     end
   end
 

@@ -8,11 +8,11 @@ class ChecklistItemCompletionTest < ActiveSupport::TestCase
       password: "StrongerPass123",
       password_confirmation: "StrongerPass123"
     )
-    @checklist = Checklist.create!(title: "Opening tasks", notes: "Daily startup")
+    @checklist = Checklist.create!(title: "Opening tasks", notes: "Daily startup", start_at: Time.utc(2000, 1, 1, 8, 50, 0))
     @checklist_item = @checklist.checklist_items.create!(
       item_text: "Unlock doors",
       sort_order: 1,
-      desired_completion_at: Time.utc(2026, 4, 23, 9, 0, 0)
+      desired_completion_offset_minutes: 10
     )
   end
 

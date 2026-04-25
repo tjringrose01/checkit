@@ -115,6 +115,14 @@
         margin-bottom: 0;
       }
 
+      .checklist-item__meta {
+        margin-top: 12px;
+      }
+
+      .checklist-item__meta p:last-child {
+        margin-bottom: 0;
+      }
+
       .checklist-item dl {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -245,6 +253,40 @@
         }
       }
     </style>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll("[data-local-datetime]").forEach(function(node) {
+          var isoValue = node.dataset.localDatetime;
+          if (!isoValue) return;
+
+          var parsed = new Date(isoValue);
+          if (Number.isNaN(parsed.getTime())) return;
+
+          var month = String(parsed.getMonth() + 1).padStart(2, "0");
+          var day = String(parsed.getDate()).padStart(2, "0");
+          var year = String(parsed.getFullYear()).slice(-2);
+          var rawHours = parsed.getHours();
+          var meridiem = rawHours >= 12 ? "PM" : "AM";
+          var hour12 = rawHours % 12;
+          if (hour12 === 0) hour12 = 12;
+          var hours = String(hour12).padStart(2, "0");
+          var minutes = String(parsed.getMinutes()).padStart(2, "0");
+          var timezoneParts = new Intl.DateTimeFormat(undefined, {
+            timeZoneName: "short"
+          }).formatToParts(parsed);
+          var timezonePart = timezoneParts.find(function(part) { return part.type === "timeZoneName"; });
+          var timezone = timezonePart ? timezonePart.value : "";
+          var format = node.dataset.localFormat || "datetime";
+
+          if (format === "time") {
+            node.textContent = [hours + ":" + minutes, meridiem, timezone].filter(Boolean).join(" ");
+            return;
+          }
+
+          node.textContent = [month + "/" + day + "/" + year, hours + ":" + minutes, meridiem, timezone].filter(Boolean).join(" ");
+        });
+      });
+    </script>
   </head>
   <body>
     <main>

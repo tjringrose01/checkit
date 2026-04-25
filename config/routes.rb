@@ -3,12 +3,13 @@ Rails.application.routes.draw do
 
   resource :session, only: [ :new, :create, :destroy ]
   resource :password_change, only: [ :edit, :update ]
+  get "/checklists/:id", to: "dashboard#show", as: :checklist
   resources :checklist_items, only: [] do
     resource :completion, only: [ :update ], controller: "checklist_item_completions"
   end
   namespace :admin do
-    root "dashboard#show"
-    resources :checklists, except: [ :show ] do
+    root "checklists#index"
+    resources :checklists do
       resources :checklist_items, except: [ :index, :show ]
       resource :checklist_item_import, only: [ :create ]
     end
@@ -19,5 +20,5 @@ Rails.application.routes.draw do
     end
   end
 
-  root "dashboard#show"
+  root "dashboard#index"
 end

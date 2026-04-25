@@ -1,7 +1,7 @@
 require "csv"
 
 class ChecklistItemCsvImport
-  REQUIRED_HEADERS = %w[item_text sort_order desired_completion_at].freeze
+  REQUIRED_HEADERS = %w[item_text sort_order desired_completion_offset_minutes].freeze
   OPTIONAL_HEADERS = %w[checklist_item_id].freeze
 
   attr_reader :errors
@@ -49,7 +49,7 @@ class ChecklistItemCsvImport
     checklist_item.assign_attributes(
       item_text: row.fetch("item_text"),
       sort_order: row.fetch("sort_order"),
-      desired_completion_at: parsed_time(row["desired_completion_at"], line_number)
+      desired_completion_offset_minutes: parsed_offset_minutes(row["desired_completion_offset_minutes"], line_number)
     )
 
     raise ActiveRecord::RecordInvalid, checklist_item if errors.any?
@@ -68,12 +68,14 @@ class ChecklistItemCsvImport
     checklist.checklist_items.new
   end
 
-  def parsed_time(value, line_number)
-    return nil if value.blank?
+  def parsed_offset_minutes(value, line_number)
+    parsed_value = Integer(value)
+    return parsed_value if parsed_value >= 0
 
-    Time.zone.parse(value)
+    error!("Row #{line_number}: desired_completion_offset_minutes must be 0 or greater")
+    nil
   rescue ArgumentError, TypeError
-    error!("Row #{line_number}: desired_completion_at is invalid")
+    error!("Row #{line_number}: desired_completion_offset_minutes is invalid")
     nil
   end
 
