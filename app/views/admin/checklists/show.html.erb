@@ -35,7 +35,7 @@
       <% end %>
     </header>
 
-    <p><strong>Start:</strong> <%= browser_local_clock_time(@checklist.start_time_on(Time.current)) %></p>
+    <p><strong>Start:</strong> <%= formatted_wall_clock_time(@checklist.start_at) %></p>
 
     <ul class="checklist-items">
       <% @checklist.checklist_items.each do |checklist_item| %>
@@ -45,7 +45,7 @@
             <div class="checklist-item__meta">
               <p>Sort order: <%= checklist_item.sort_order %></p>
               <p>Desired: <%= formatted_checklist_offset(checklist_item.desired_completion_offset_minutes) %></p>
-              <p>Scheduled: <%= browser_local_clock_time(checklist_item.desired_completion_at(reference_time: Time.current)) %></p>
+              <p>Target time: <%= formatted_wall_clock_time(checklist_item.desired_completion_at(reference_time: Time.current)) %></p>
             </div>
           </div>
 

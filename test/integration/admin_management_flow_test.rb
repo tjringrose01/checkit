@@ -119,7 +119,7 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match 'name="checklist[start_at]"', response.body
     assert_match 'value="05:00 PM"', response.body
-    assert_match 'data-local-format="time"', response.body
+    assert_match "Start:</strong> 05:00 PM", response.body
   end
 
   test "admin checklist item html is rendered in the management view" do
@@ -136,6 +136,7 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
     assert_match "<strong>Close</strong>", response.body
     assert_no_match "&lt;strong&gt;Close&lt;/strong&gt;", response.body
     assert_match "Sort order: 1", response.body
+    assert_match "Target time: 05:20 PM", response.body
   end
 
   test "admin can import checklist items from csv" do
