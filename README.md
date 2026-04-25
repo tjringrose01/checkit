@@ -96,6 +96,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 
 - Every user must have an email address.
 - `email` must be required and unique.
+- A database-level unique index must be present for `email`.
 - Email addresses must be normalized before storage:
   - trim surrounding whitespace
   - convert to lowercase
@@ -197,8 +198,31 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - SQLite is the initial development database.
 - The schema and application code must remain compatible with a later migration to PostgreSQL.
 - The database design must avoid SQLite-only features that would complicate PostgreSQL migration.
+- Every data table must include `created_at` and `updated_at`.
+- `created_at` must be set when the row is created.
+- `updated_at` must be updated every time the row is updated.
 - Unique indexes must be created for `user_id` and `email`.
 - Constraints and validations should be implemented so behavior is consistent between SQLite and PostgreSQL.
+
+### Database Naming Conventions
+
+To keep the schema readable and PostgreSQL-friendly, database objects should follow these naming conventions:
+
+- Use lowercase `snake_case` for tables, columns, indexes, constraints, and foreign keys.
+- Use plural nouns for table names.
+  Examples: `users`, `checklists`, `checklist_items`
+- Use descriptive column names rather than abbreviations where practical.
+  Examples: `failed_login_attempts`, `desired_completion_at`, `must_change_password`
+- Prefer `{table_name}_id` for primary key columns in new tables when that does not conflict with existing framework conventions.
+- Use `{referenced_table_singular}_id` for foreign key columns.
+  Examples: `user_id`, `checklist_id`, `checklist_item_id`
+- Name indexes with an `idx_` style prefix when creating explicit custom names.
+  Example: `idx_checklist_items_sort_order`
+- Name unique or alternate-key constraints with a `{table_name}_{column_name}_key` style when custom naming is needed.
+- Keep names explicit enough that PostgreSQL migrations, schema reviews, and future production operations remain easy to understand.
+
+Reference used for these conventions:
+- https://www.geeksforgeeks.org/postgresql/postgresql-naming-conventions/
 
 ### Containerization And Environment
 
