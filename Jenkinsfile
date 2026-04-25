@@ -8,8 +8,8 @@ pipeline {
 
   environment {
     DOCKER_REGISTRY = "${env.DOCKER_REGISTRY ?: 'docker.io'}"
-    DOCKER_IMAGE_REPOSITORY = "${env.DOCKER_IMAGE_REPOSITORY ?: 'library/checkit'}"
-    DOCKER_CREDENTIALS_ID = "${env.DOCKER_CREDENTIALS_ID ?: 'docker-registry-credentials'}"
+    DOCKER_IMAGE_REPOSITORY = "${env.DOCKER_IMAGE_REPOSITORY ?: 'tjringrose01/checkit'}"
+    DOCKER_CREDENTIALS_ID = "${env.DOCKER_CREDENTIALS_ID ?: 'dockerhub_id'}"
   }
 
   stages {

@@ -311,14 +311,14 @@ Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
 Create these Jenkins pipeline environment variables:
 
 - `DOCKER_REGISTRY`
-  - Example for Docker Hub: `docker.io`
+  - Docker Hub value for this repo: `docker.io`
   - Example for a private registry: `registry.example.com`
 - `DOCKER_IMAGE_REPOSITORY`
-  - Example for Docker Hub: `your-org/checkit`
+  - Docker Hub value for this repo: `tjringrose01/checkit`
   - Example for a private registry: `platform/checkit`
 - `DOCKER_CREDENTIALS_ID`
   - Jenkins credentials ID for the registry login
-  - Default expected by the `Jenkinsfile`: `docker-registry-credentials`
+  - Default expected by the `Jenkinsfile`: `dockerhub_id`
 
 #### Create The Jenkins Secret
 
@@ -329,14 +329,22 @@ Create these Jenkins pipeline environment variables:
 5. Enter the Docker registry username.
 6. Enter the Docker registry password or access token.
 7. Set `ID` to the value used by `DOCKER_CREDENTIALS_ID`.
-   Example: `docker-registry-credentials`
+   Example: `dockerhub_id`
 8. Save the credential.
+
+For this repository, the credential should authenticate to the public Docker Hub repository:
+
+- `tjringrose01/checkit`
 
 #### Create The Jenkins Job
 
 1. Create a `Pipeline` job or a multibranch pipeline pointed at this repository.
 2. Ensure the Jenkins agent has Docker CLI access and permission to run `docker build`, `docker login`, and `docker push`.
 3. Set the environment variables above in the job configuration or folder configuration.
+   Recommended values for this repo:
+   - `DOCKER_REGISTRY=docker.io`
+   - `DOCKER_IMAGE_REPOSITORY=tjringrose01/checkit`
+   - `DOCKER_CREDENTIALS_ID=dockerhub_id`
 4. Run the pipeline.
 
 #### Resulting Image Tags
