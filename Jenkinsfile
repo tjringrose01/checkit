@@ -15,7 +15,26 @@ pipeline {
   stages {
     stage('Checkout') {
       steps {
-        checkout scm
+        script {
+          env.BRANCH_TAG = (env.BRANCH_TAG ?: env.BRANCH_NAME ?: 'dev')
+            .toLowerCase()
+            .replaceAll(/[^a-z0-9._-]+/, '-')
+
+          if (!(env.BRANCH_TAG in ['dev', 'test', 'prod'])) {
+            error("BRANCH_TAG must be one of: dev, test, prod")
+          }
+
+          env.SCM_BRANCH = env.BRANCH_TAG == 'prod' ? 'main' : env.BRANCH_TAG
+        }
+
+        checkout([
+          $class: 'GitSCM',
+          branches: [[name: "*/${env.SCM_BRANCH}"]],
+          doGenerateSubmoduleConfigurations: false,
+          extensions: scm.extensions ?: [],
+          submoduleCfg: [],
+          userRemoteConfigs: scm.userRemoteConfigs
+        ])
       }
     }
 
@@ -26,9 +45,6 @@ pipeline {
             script: 'git rev-parse --short=12 HEAD',
             returnStdout: true
           ).trim()
-          env.BRANCH_TAG = (env.BRANCH_NAME ?: 'manual')
-            .toLowerCase()
-            .replaceAll(/[^a-z0-9._-]+/, '-')
           env.IMAGE_URI = "${env.DOCKER_REGISTRY}/${env.DOCKER_IMAGE_REPOSITORY}"
         }
 

@@ -326,7 +326,7 @@ Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
 ### Jenkins Container Build And Push
 
 - The repository includes a `Jenkinsfile` that:
-  1. checks out the branch Jenkins is building
+  1. checks out the SCM branch selected from `BRANCH_TAG`
   2. builds the application container from `Dockerfile`
   3. tags the image with the short Git SHA and sanitized branch name
   4. logs into the Docker registry with Jenkins-managed credentials
@@ -345,6 +345,13 @@ Create these Jenkins pipeline environment variables:
 - `DOCKER_CREDENTIALS_ID`
   - Jenkins credentials ID for the registry login
   - Default expected by the `Jenkinsfile`: `dockerhub_id`
+- `BRANCH_TAG`
+  - Required deployment environment selector
+  - Allowed values: `dev`, `test`, `prod`
+  - SCM checkout mapping:
+    - `dev` -> `dev`
+    - `test` -> `test`
+    - `prod` -> `main`
 
 #### Create The Jenkins Secret
 
@@ -371,12 +378,23 @@ For this repository, the credential should authenticate to the public Docker Hub
    - `DOCKER_REGISTRY=docker.io`
    - `DOCKER_IMAGE_REPOSITORY=tjringrose01/checkit`
    - `DOCKER_CREDENTIALS_ID=dockerhub_id`
+   - `BRANCH_TAG=dev` for the dev deployment job
+   - `BRANCH_TAG=test` for the test deployment job
+   - `BRANCH_TAG=prod` for the production deployment job
 4. Run the pipeline.
+
+If you create separate Jenkins jobs for each environment, set `BRANCH_TAG` per job:
+
+- Development job: `BRANCH_TAG=dev`
+- Test job: `BRANCH_TAG=test`
+- Production job: `BRANCH_TAG=prod`
+
+When `BRANCH_TAG=prod`, the pipeline checks out `main` from SCM and still tags the container as `prod`.
 
 #### Resulting Image Tags
 
 - `${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPOSITORY}:${short_git_sha}`
-- `${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPOSITORY}:${branch_name}`
+- `${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPOSITORY}:${BRANCH_TAG}`
 
 ### MVP Status
 
