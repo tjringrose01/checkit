@@ -219,6 +219,8 @@ To keep the schema readable and PostgreSQL-friendly, database objects should fol
 - Name indexes with an `idx_` style prefix when creating explicit custom names.
   Example: `idx_checklist_items_sort_order`
 - Name unique or alternate-key constraints with a `{table_name}_{column_name}_key` style when custom naming is needed.
+- For import/export files and external identifiers, prefer explicit field names over generic names such as `id`.
+  Example: use `checklist_item_id` instead of `id`
 - Keep names explicit enough that PostgreSQL migrations, schema reviews, and future production operations remain easy to understand.
 
 Reference used for these conventions:

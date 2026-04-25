@@ -2,6 +2,7 @@ require "csv"
 
 class ChecklistItemCsvImport
   REQUIRED_HEADERS = %w[item_text sort_order desired_completion_at].freeze
+  OPTIONAL_HEADERS = %w[checklist_item_id].freeze
 
   attr_reader :errors
 
@@ -60,7 +61,9 @@ class ChecklistItemCsvImport
   end
 
   def find_or_build_item(row)
-    return checklist.checklist_items.find_or_initialize_by(id: row["id"]) if row["id"].present?
+    if row["checklist_item_id"].present?
+      return checklist.checklist_items.find_or_initialize_by(id: row["checklist_item_id"])
+    end
 
     checklist.checklist_items.new
   end

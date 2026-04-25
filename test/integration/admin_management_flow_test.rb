@@ -65,6 +65,27 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
     assert_equal 2, imported_item.sort_order
   end
 
+  test "admin can update an existing checklist item through csv using checklist_item_id" do
+    sign_in_as(@admin)
+    checklist_item = @checklist.checklist_items.create!(
+      item_text: "Existing row",
+      sort_order: 5,
+      desired_completion_at: Time.utc(2026, 4, 25, 17, 15, 0)
+    )
+
+    post admin_checklist_checklist_item_import_path(@checklist), params: {
+      file: csv_upload(
+        "checklist_item_id,item_text,sort_order,desired_completion_at\n" \
+        "#{checklist_item.id},Updated row,3,2026-04-25 18:00\n"
+      )
+    }
+
+    assert_redirected_to admin_checklists_path
+    checklist_item.reload
+    assert_equal "Updated row", checklist_item.item_text
+    assert_equal 3, checklist_item.sort_order
+  end
+
   test "csv import rejects malformed files with actionable errors" do
     sign_in_as(@admin)
 

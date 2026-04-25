@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_04_23_012400) do
+ActiveRecord::Schema[7.1].define(version: 2026_04_25_010000) do
   create_table "checklist_item_completions", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "checklist_item_id", null: false
@@ -19,9 +19,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_23_012400) do
     t.integer "completion_deviation_seconds"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["checklist_item_id"], name: "index_checklist_item_completions_on_checklist_item_id"
-    t.index ["user_id", "checklist_item_id"], name: "index_checklist_item_completions_uniqueness", unique: true
-    t.index ["user_id"], name: "index_checklist_item_completions_on_user_id"
+    t.index ["checklist_item_id"], name: "idx_checklist_item_completions_checklist_item_id"
+    t.index ["user_id", "checklist_item_id"], name: "checklist_item_completions_user_id_checklist_item_id_key", unique: true
+    t.index ["user_id"], name: "idx_checklist_item_completions_user_id"
   end
 
   create_table "checklist_items", force: :cascade do |t|
@@ -31,8 +31,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_23_012400) do
     t.datetime "desired_completion_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["checklist_id", "sort_order"], name: "index_checklist_items_on_checklist_id_and_sort_order"
-    t.index ["checklist_id"], name: "index_checklist_items_on_checklist_id"
+    t.index ["checklist_id", "sort_order"], name: "idx_checklist_items_checklist_id_sort_order"
+    t.index ["checklist_id"], name: "idx_checklist_items_checklist_id"
   end
 
   create_table "checklists", force: :cascade do |t|
@@ -41,7 +41,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_23_012400) do
     t.string "status", default: "active", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["status"], name: "index_checklists_on_status"
+    t.index ["status"], name: "idx_checklists_status"
   end
 
   create_table "users", force: :cascade do |t|
@@ -56,8 +56,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_23_012400) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "enabled", default: true, null: false
-    t.index ["email"], name: "index_users_on_email", unique: true
-    t.index ["user_id"], name: "index_users_on_user_id", unique: true
+    t.index ["email"], name: "users_email_key", unique: true
+    t.index ["user_id"], name: "users_user_id_key", unique: true
   end
 
   add_foreign_key "checklist_item_completions", "checklist_items"
