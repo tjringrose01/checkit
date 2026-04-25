@@ -8,6 +8,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 2. Database: Start with SQLite for lightweight local storage, while keeping the application compatible with a future migration to PostgreSQL.
 3. Web Frontend: Build a responsive web frontend using a modern framework such as React or Vue. The interface must work well in iPhone and Android browsers.
 4. Checklist Interaction: Users must be able to view checklist items, check them off, and have those changes synced with the backend.
+   - Checklist item content should support rendering stored HTML in the application UI.
 5. Management Interface: Authorized users must have a secure web interface for uploading and managing checklist items.
 6. User Roles: Support at least two roles:
    - Checklist Creator / Admin: can create and manage checklists.

@@ -1,7 +1,32 @@
 module ApplicationHelper
+  CHECKLIST_ITEM_HTML_TAGS = %w[
+    a
+    b
+    br
+    code
+    em
+    i
+    li
+    ol
+    p
+    span
+    strong
+    u
+    ul
+  ].freeze
+  CHECKLIST_ITEM_HTML_ATTRIBUTES = %w[href title target rel].freeze
+
   def checklist_completion_for(checklist_item)
     @completion_lookup ||= current_user.checklist_item_completions.includes(:checklist_item).index_by(&:checklist_item_id)
     @completion_lookup[checklist_item.id]
+  end
+
+  def render_checklist_item_content(checklist_item)
+    sanitize(
+      checklist_item.item_text,
+      tags: CHECKLIST_ITEM_HTML_TAGS,
+      attributes: CHECKLIST_ITEM_HTML_ATTRIBUTES
+    )
   end
 
   def formatted_checklist_time(value)

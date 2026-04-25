@@ -34,7 +34,7 @@
         <% checklist.checklist_items.each do |checklist_item| %>
           <li class="checklist-item">
             <div class="checklist-item__content">
-              <h3><%= checklist_item.item_text %></h3>
+              <div class="checklist-item__text"><%= render_checklist_item_content(checklist_item) %></div>
               <p>Sort order: <%= checklist_item.sort_order %></p>
               <p>Desired: <%= formatted_checklist_time(checklist_item.desired_completion_at) %></p>
             </div>

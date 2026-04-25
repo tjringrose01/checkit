@@ -38,6 +38,18 @@ class ChecklistCompletionFlowTest < ActionDispatch::IntegrationTest
     assert_no_match "Archived", response.body
   end
 
+  test "checklist item html is rendered for authenticated users" do
+    @active_item.update!(item_text: "<strong>Unlock</strong> front door<br><em>before 8am</em>")
+    sign_in_as(@user)
+
+    get root_path
+
+    assert_response :success
+    assert_match "<strong>Unlock</strong>", response.body
+    assert_match "<em>before 8am</em>", response.body
+    assert_no_match "&lt;strong&gt;Unlock&lt;/strong&gt;", response.body
+  end
+
   test "user can complete and uncomplete an item" do
     sign_in_as(@user)
 

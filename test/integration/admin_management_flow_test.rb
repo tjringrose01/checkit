@@ -53,6 +53,20 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
     assert_equal 1, created_checklist.checklist_items.where(item_text: "Power on terminals").count
   end
 
+  test "admin checklist item html is rendered in the management view" do
+    @checklist.checklist_items.create!(
+      item_text: "<p><strong>Close</strong> register</p>",
+      sort_order: 1
+    )
+    sign_in_as(@admin)
+
+    get admin_checklists_path
+
+    assert_response :success
+    assert_match "<strong>Close</strong>", response.body
+    assert_no_match "&lt;strong&gt;Close&lt;/strong&gt;", response.body
+  end
+
   test "admin can import checklist items from csv" do
     sign_in_as(@admin)
 
