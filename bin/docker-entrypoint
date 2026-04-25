@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ -d "/app" ]; then
+  app_owner="$(stat -c '%u:%g' /app)"
+
+  for path in /app/db /app/log /app/tmp /app/storage; do
+    if [ -e "$path" ]; then
+      chown -R "$app_owner" "$path" 2>/dev/null || true
+      chmod -R u+rwX "$path" 2>/dev/null || true
+    fi
+  done
+fi
+
 bundle check || bundle install
 
 if [ -f "bin/rails" ]; then
