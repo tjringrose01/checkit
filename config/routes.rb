@@ -3,7 +3,9 @@ Rails.application.routes.draw do
 
   resource :session, only: [ :new, :create, :destroy ]
   resource :password_change, only: [ :edit, :update ]
-  get "/checklists/:id", to: "dashboard#show", as: :checklist
+  resources :checklists, only: [ :show ], controller: "dashboard" do
+    resource :reset, only: [ :update ], controller: "checklist_resets"
+  end
   resources :checklist_items, only: [] do
     resource :completion, only: [ :update ], controller: "checklist_item_completions"
   end

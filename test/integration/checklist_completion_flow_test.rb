@@ -66,6 +66,7 @@ class ChecklistCompletionFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Unlock front door", response.body
     assert_no_match "Prep salad bar", response.body
+    assert_match "0% complete", response.body
   end
 
   test "checklist item html is rendered for authenticated users" do
@@ -79,7 +80,8 @@ class ChecklistCompletionFlowTest < ActionDispatch::IntegrationTest
     assert_match "<em>before 8am</em>", response.body
     assert_no_match "&lt;strong&gt;Unlock&lt;/strong&gt;", response.body
     assert_match "30 minutes from start", response.body
-    assert_match 'data-local-format="time"', response.body
+    assert_match "Target time", response.body
+    assert_match "09:00 AM", response.body
   end
 
   test "user can complete and uncomplete an item" do
@@ -100,12 +102,83 @@ class ChecklistCompletionFlowTest < ActionDispatch::IntegrationTest
     assert_nil completion.actual_completed_at
   end
 
+  test "user can complete an item without a redirect via json" do
+    sign_in_as(@user)
+
+    travel_to(Time.utc(2026, 4, 23, 9, 0, 0)) do
+      patch checklist_item_completion_path(@active_item),
+            params: { completed: true },
+            headers: { "ACCEPT" => "application/json" }
+    end
+
+    assert_response :success
+    payload = JSON.parse(response.body)
+    assert_equal true, payload["completed"]
+    assert_equal "Mark Incomplete", payload["button_label"]
+    assert_equal "secondary-button", payload["button_class"]
+    assert_equal "On time", payload["deviation_text"]
+    assert_includes payload["actual_html"], "data-local-datetime"
+  end
+
   test "inactive checklist items cannot be updated through the completion endpoint" do
     sign_in_as(@user)
 
     assert_raises ActiveRecord::RecordNotFound do
       patch checklist_item_completion_path(@inactive_item), params: { completed: true }
     end
+  end
+
+  test "user can reset checklist completions without a redirect via json" do
+    sign_in_as(@user)
+    @user.checklist_item_completions.create!(
+      checklist_item: @active_item,
+      actual_completed_at: Time.utc(2026, 4, 23, 9, 0, 0)
+    )
+
+    patch checklist_reset_path(@active_checklist), headers: { "ACCEPT" => "application/json" }
+
+    assert_response :success
+    assert_equal({ "success" => true }, JSON.parse(response.body))
+    assert_empty @user.checklist_item_completions.where(checklist_item: @active_item)
+  end
+
+  test "checklist workspace shows completion percentage based on completed items" do
+    @active_item.update!(desired_completion_offset_minutes: 0)
+    @active_checklist.checklist_items.create!(
+      item_text: "Check alarm panel",
+      sort_order: 2,
+      desired_completion_offset_minutes: 0
+    )
+    @user.checklist_item_completions.create!(
+      checklist_item: @active_item,
+      actual_completed_at: Time.utc(2026, 4, 23, 9, 0, 0)
+    )
+    sign_in_as(@user)
+
+    get checklist_path(@active_checklist)
+
+    assert_response :success
+    assert_match "50% complete", response.body
+  end
+
+  test "checklist workspace shows completion percentage based on target times when available" do
+    second_item = @active_checklist.checklist_items.create!(
+      item_text: "Check alarm panel",
+      sort_order: 2,
+      desired_completion_offset_minutes: 60
+    )
+    @user.checklist_item_completions.create!(
+      checklist_item: @active_item,
+      actual_completed_at: Time.utc(2026, 4, 23, 9, 0, 0)
+    )
+    sign_in_as(@user)
+
+    get checklist_path(@active_checklist)
+
+    assert_response :success
+    assert_match "50% complete", response.body
+    assert_match "data-target-offset-minutes=\"30\"", response.body
+    assert_match "data-target-offset-minutes=\"60\"", response.body
   end
 
   private

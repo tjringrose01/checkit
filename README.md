@@ -13,6 +13,8 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
    - Each checklist item's desired time must be stored as a number of minutes relative to the checklist start time.
    - Checklist start time is time-of-day only and must not depend on a stored date.
    - The application must accept checklist start times such as `7:00 PM`.
+   - Marking a checklist item complete or incomplete should update the current page in place without a full page refresh or loss of scroll position.
+   - Checklist percent-complete should be calculated from target times when target offsets are available, and should fall back to task-count progress when target times are not meaningfully set.
    - Displayed checklist times must render in the browser's local time rather than fixed UTC output.
    - Unless otherwise specified, displayed times must use the format `MM/DD/YY hh:mm AM/PM TZ`.
 5. Management Interface: Authorized users must have a secure web interface for uploading and managing checklist items.
@@ -165,6 +167,9 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - The system must define whether completion state is global or per user.
 - The initial implementation should treat checklist item completion as per-user state unless a later requirement overrides that behavior.
 - Deviation calculations must treat checklist start time as time-of-day only and compare item target time against the actual completion date.
+- Actual completion display should assume the same day context and render as time-only unless a later requirement asks for the date.
+- Checklist start time and calculated target time must render as wall-clock times and must not shift by timezone offset.
+- Checklist progress percentage should use target-time progression when target offsets are available and should fall back to task-count progression otherwise.
 - Deviation from desired completion time to actual completion time must be calculated and displayed to the user.
 - The deviation display must indicate whether completion was early, on time, or late.
 
@@ -198,18 +203,22 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - view assigned or available checklists as a checklist list page
   - open a specific checklist and see only that checklist's items
   - check and uncheck checklist items
+  - see checklist percent-complete update as items are completed, using target-time progression when available
   - see persisted checklist state after refresh
   - see desired completion time, actual completion time, and deviation status for checklist items where applicable
 - The admin UI must allow secure checklist and user-management actions appropriate to the `admin` role.
 - Admin checklist forms must use browser-compatible AM/PM time input formatting so checklist start times render and submit correctly.
 - Checklist time displays must use browser-local rendering for start, scheduled, and actual completion times.
 - Unless otherwise specified, checklist time displays must render as `MM/DD/YY hh:mm AM/PM TZ` in the browser timezone.
+- Time-only checklist displays such as start, scheduled, and actual should render as `hh:mm AM/PM TZ`.
+- Checklist start and target time displays should use `hh:mm AM/PM` wall-clock formatting without timezone shifting.
 
 ### Sync Behavior
 
 - Checklist changes must be written to the backend immediately when the user changes item state.
 - The frontend may use optimistic updates, but it must recover cleanly from backend failures.
 - On failed checklist updates, the UI must show a user-visible error and restore the last confirmed backend state.
+- Checklist item completion changes should preserve the user's current page position and avoid unnecessary full-page reloads.
 - Real-time multi-user synchronization is not required in the initial version.
 
 ### Database And Portability

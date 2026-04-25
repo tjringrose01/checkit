@@ -127,6 +127,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 10px;
+        margin-top: 12px;
         margin-bottom: 0;
       }
 
@@ -255,6 +256,140 @@
     </style>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
+        function updateChecklistPercentage(checklistCard) {
+          if (!checklistCard) return;
+
+          var percentageNode = checklistCard.querySelector("[data-role='completion-percentage']");
+          if (!percentageNode) return;
+
+          var items = Array.prototype.slice.call(checklistCard.querySelectorAll("[data-checklist-item-id]"));
+          var totalItems = items.length;
+          var maxTargetOffset = items.reduce(function(maxValue, item) {
+            var offset = parseInt(item.dataset.targetOffsetMinutes || "0", 10);
+            return Math.max(maxValue, Number.isNaN(offset) ? 0 : offset);
+          }, 0);
+
+          var percentage;
+          if (maxTargetOffset > 0) {
+            var completedTargetOffset = items.reduce(function(maxValue, item) {
+              if (!item.classList.contains("checklist-item--complete")) return maxValue;
+
+              var offset = parseInt(item.dataset.targetOffsetMinutes || "0", 10);
+              return Math.max(maxValue, Number.isNaN(offset) ? 0 : offset);
+            }, 0);
+
+            percentage = Math.round((completedTargetOffset / maxTargetOffset) * 100);
+          } else {
+            var completedItems = checklistCard.querySelectorAll(".checklist-item--complete").length;
+            percentage = totalItems === 0 ? 0 : Math.round((completedItems / totalItems) * 100);
+          }
+
+          percentageNode.innerHTML = "<strong>" + percentage + "% complete</strong>";
+        }
+
+        document.querySelectorAll("form[data-remote-reset]").forEach(function(form) {
+          form.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            var checklistCard = form.closest("[data-checklist-id]");
+            var button = form.querySelector("button, input[type='submit']");
+            if (!checklistCard || !button) return;
+
+            button.disabled = true;
+
+            fetch(form.action, {
+              method: "POST",
+              headers: {
+                "Accept": "application/json"
+              },
+              body: new FormData(form),
+              credentials: "same-origin"
+            }).then(function(response) {
+              return response.json().then(function(payload) {
+                return { ok: response.ok, payload: payload };
+              });
+            }).then(function(result) {
+              if (!result.ok) {
+                throw new Error(result.payload.error || "Checklist reset failed.");
+              }
+
+              checklistCard.querySelectorAll("[data-checklist-item-id]").forEach(function(item) {
+                item.classList.remove("checklist-item--complete");
+
+                var actualNode = item.querySelector("[data-role='actual-time']");
+                var deviationNode = item.querySelector("[data-role='deviation']");
+                var completionForm = item.querySelector("form[data-remote-completion]");
+                var completionButton = completionForm ? completionForm.querySelector("button, input[type='submit']") : null;
+                var completedField = completionForm ? completionForm.querySelector("input[name='completed']") : null;
+
+                if (actualNode) actualNode.textContent = "Not set";
+                if (deviationNode) deviationNode.textContent = "Pending";
+                if (completedField) completedField.value = "true";
+
+                if (completionButton) {
+                  completionButton.textContent = "Complete Item";
+                  completionButton.classList.remove("primary-button", "secondary-button");
+                  completionButton.classList.add("primary-button");
+                }
+              });
+
+              updateChecklistPercentage(checklistCard);
+            }).catch(function(error) {
+              window.alert(error.message);
+            }).finally(function() {
+              button.disabled = false;
+            });
+          });
+        });
+
+        document.querySelectorAll("form[data-remote-completion]").forEach(function(form) {
+          form.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            var button = form.querySelector("button, input[type='submit']");
+            var checklistItem = form.closest("[data-checklist-item-id]");
+            if (!button || !checklistItem) return;
+
+            button.disabled = true;
+
+            fetch(form.action, {
+              method: "POST",
+              headers: {
+                "Accept": "application/json"
+              },
+              body: new FormData(form),
+              credentials: "same-origin"
+            }).then(function(response) {
+              return response.json().then(function(payload) {
+                return { ok: response.ok, payload: payload };
+              });
+            }).then(function(result) {
+              if (!result.ok) {
+                throw new Error(result.payload.error || "Checklist item update failed.");
+              }
+
+              checklistItem.classList.toggle("checklist-item--complete", result.payload.completed);
+
+              var actualNode = checklistItem.querySelector("[data-role='actual-time']");
+              var deviationNode = checklistItem.querySelector("[data-role='deviation']");
+              var completedField = form.querySelector("input[name='completed']");
+
+              if (actualNode) actualNode.innerHTML = result.payload.actual_html;
+              if (deviationNode) deviationNode.textContent = result.payload.deviation_text;
+              if (completedField) completedField.value = result.payload.next_completed_value;
+
+              button.textContent = result.payload.button_label;
+              button.classList.remove("primary-button", "secondary-button");
+              button.classList.add(result.payload.button_class);
+              updateChecklistPercentage(checklistItem.closest("[data-checklist-id]"));
+            }).catch(function(error) {
+              window.alert(error.message);
+            }).finally(function() {
+              button.disabled = false;
+            });
+          });
+        });
+
         document.querySelectorAll("[data-local-datetime]").forEach(function(node) {
           var isoValue = node.dataset.localDatetime;
           if (!isoValue) return;

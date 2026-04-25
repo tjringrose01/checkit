@@ -75,10 +75,44 @@ module ApplicationHelper
     )
   end
 
+  def formatted_wall_clock_time(value)
+    return "Not set" if value.blank?
+
+    time_value =
+      case value
+      when String
+        Time.zone.parse(value)
+      else
+        value.in_time_zone("UTC")
+      end
+
+    return "Not set" if time_value.blank?
+
+    time_value.strftime("%I:%M %p")
+  end
+
   def formatted_checklist_offset(minutes)
     return "Not set" if minutes.blank? && minutes != 0
 
     "#{minutes} minute#{'s' unless minutes.to_i == 1} from start"
+  end
+
+  def checklist_completion_percentage(checklist)
+    total_items = checklist.checklist_items.size
+    return 0 if total_items.zero?
+
+    max_target_offset = checklist.checklist_items.map { |item| item.desired_completion_offset_minutes.to_i }.max.to_i
+
+    if max_target_offset.positive?
+      completed_target_offset = checklist.checklist_items.filter_map do |item|
+        item.desired_completion_offset_minutes.to_i if checklist_completion_for(item)&.completed?
+      end.max.to_i
+
+      return ((completed_target_offset.to_f / max_target_offset) * 100).round
+    end
+
+    completed_items = checklist.checklist_items.count { |item| checklist_completion_for(item)&.completed? }
+    ((completed_items.to_f / total_items) * 100).round
   end
 
   def time_field_value(value)
