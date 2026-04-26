@@ -31,8 +31,12 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
    - User: can view and interact with checklists.
    - The application must support self-service registration for new `user` accounts.
 7. Shared Footer: The application must display a shared footer on all pages, including the login page.
-   - The footer should include common build and runtime metadata such as application name, application version when available, immutable source revision when a version is not available, build identifier, build timestamp, and environment or branch.
-   - The footer may also include copyright information.
+   - The footer should include common build and runtime metadata in this order: application name, copyright, environment or branch, build identifier, then built timestamp.
+   - The built timestamp should render in the browser's local timezone.
+8. Shared Header: The application must display a shared header on authenticated pages.
+   - Clicking the application name or logo in the header should return the user to the home screen.
+   - User actions such as signing out and opening the admin workspace should be available from a dropdown opened from the upper-right user bubble.
+   - The authenticated checklist views should not repeat a `Signed in as ...` banner in the page body.
 
 ## Recommended Technical Direction
 
@@ -310,10 +314,12 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - A shared footer should be visible on application pages, including the sign-in page.
 - The shared footer should show application and build metadata such as:
   - application name
-  - build identifier such as `dev-99`
-  - build timestamp
+  - copyright
   - environment or branch label
-  - copyright information when configured
+  - build identifier such as `dev-99`
+  - build timestamp in the browser timezone
+- A shared authenticated header should expose the home link from the application name/logo.
+- The authenticated header should expose account actions from the upper-right user bubble menu instead of page-level sign-out/admin links.
 
 ### Sync Behavior
 
@@ -689,11 +695,10 @@ The Jenkins build bakes these values into the image so the running application c
 The resulting footer should make a running container traceable to:
 
 - the application name
-- the release version when one exists
-- otherwise the immutable Git SHA
-- the Jenkins build identifier such as `dev-99`
-- the build timestamp
+- the copyright notice
 - the environment label
+- the Jenkins build identifier such as `dev-99`
+- the build timestamp rendered in the browser timezone
 
 ### MVP Status
 

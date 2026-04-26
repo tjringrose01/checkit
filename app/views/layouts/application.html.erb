@@ -122,6 +122,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
+        text-decoration: none;
       }
 
       .logo-icon {
@@ -169,22 +170,72 @@
       .user {
         display: flex;
         align-items: center;
-        gap: 12px;
+        position: relative;
       }
 
-      .user-meta {
-        text-align: right;
+      .user-menu-toggle {
+        border: 0;
+        background: transparent;
+        cursor: pointer;
+        padding: 0;
       }
 
-      .user-meta strong {
+      .user-menu {
+        position: absolute;
+        top: calc(100% + 12px);
+        right: 0;
+        min-width: 220px;
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        box-shadow: 0 20px 60px var(--shadow);
+        padding: 10px;
+        display: none;
+        z-index: 20;
+      }
+
+      .user-menu[data-open="true"] {
+        display: block;
+      }
+
+      .user-menu__label {
+        padding: 8px 10px 12px;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 6px;
+      }
+
+      .user-menu__label strong {
         display: block;
         font-size: 14px;
         color: var(--dark);
       }
 
-      .user-meta span {
+      .user-menu__label span {
         font-size: 12px;
         color: var(--text-light);
+      }
+
+      .user-menu__item,
+      .user-menu__button {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text);
+        text-decoration: none;
+        background: transparent;
+        border: 0;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+
+      .user-menu__item:hover,
+      .user-menu__button:hover {
+        background: var(--glass-dark);
+        color: var(--primary);
       }
 
       .user-avatar {
@@ -574,6 +625,27 @@
     </style>
     <script>
       document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll("[data-user-menu-toggle]").forEach(function(toggle) {
+          toggle.addEventListener("click", function() {
+            var menu = document.getElementById(toggle.dataset.userMenuToggle);
+            if (!menu) return;
+
+            var isOpen = menu.dataset.open === "true";
+            document.querySelectorAll("[data-user-menu]").forEach(function(otherMenu) {
+              otherMenu.dataset.open = "false";
+            });
+            menu.dataset.open = isOpen ? "false" : "true";
+          });
+        });
+
+        document.addEventListener("click", function(event) {
+          if (event.target.closest("[data-user-menu-container]")) return;
+
+          document.querySelectorAll("[data-user-menu]").forEach(function(menu) {
+            menu.dataset.open = "false";
+          });
+        });
+
         function updateChecklistPercentage(checklistCard) {
           if (!checklistCard) return;
 
@@ -749,7 +821,7 @@
       <div class="floating-bubble floating-bubble--two"></div>
 
       <nav class="nav">
-        <div class="logo">
+        <%= link_to(authenticated? ? root_path : new_session_path, class: "logo") do %>
           <div class="logo-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M16 4C16 2.89543 15.1046 2 14 2H10C8.89543 2 8 2.89543 8 4V6H16V4Z" fill="currentColor"/>
@@ -758,14 +830,11 @@
             </svg>
           </div>
           <span><%= application_name %></span>
-        </div>
+        <% end %>
 
         <div class="nav-links">
           <%= link_to "Dashboard", authenticated? ? root_path : new_session_path, class: "nav-link active" %>
-          <% if authenticated? && current_user.admin? %>
-            <%= link_to "Admin", admin_root_path, class: "nav-link" %>
-            <%= link_to "Users", admin_users_path, class: "nav-link" %>
-          <% elsif authenticated? %>
+          <% if authenticated? %>
             <%= link_to "Checklists", root_path, class: "nav-link" %>
           <% else %>
             <%= link_to "Sign In", new_session_path, class: "nav-link" %>
@@ -775,16 +844,31 @@
 
         <div class="user">
           <% if authenticated? %>
-            <div class="user-meta">
-              <strong><%= current_user.user_id %></strong>
-              <span><%= current_user.role.titleize %></span>
+            <div data-user-menu-container>
+              <button type="button"
+                      class="user-menu-toggle"
+                      data-user-menu-toggle="user-menu"
+                      aria-label="Open user menu">
+                <div class="user-avatar"><%= current_user.user_id.first(2).upcase %></div>
+              </button>
+
+              <div id="user-menu" class="user-menu" data-user-menu data-open="false">
+                <div class="user-menu__label">
+                  <strong><%= current_user.user_id %></strong>
+                  <span><%= current_user.role.titleize %></span>
+                </div>
+
+                <% if current_user.admin? %>
+                  <%= link_to "Open Admin Workspace", admin_root_path, class: "user-menu__item" %>
+                <% end %>
+
+                <%= button_to "Sign out",
+                              session_path,
+                              method: :delete,
+                              class: "user-menu__button" %>
+              </div>
             </div>
-            <div class="user-avatar"><%= current_user.user_id.first(2).upcase %></div>
           <% else %>
-            <div class="user-meta">
-              <strong>Guest</strong>
-              <span>Public Access</span>
-            </div>
             <div class="user-avatar">GU</div>
           <% end %>
         </div>
@@ -804,7 +888,7 @@
 
           <footer class="app-footer">
             <p><strong><%= application_name %></strong></p>
-            <p><%= footer_metadata.join(" | ") %></p>
+            <p><%= footer_metadata.join(" | ") %> | <%= footer_build_timestamp %></p>
           </footer>
         </div>
       </main>

@@ -33,7 +33,8 @@ class RegistrationFlowTest < ActionDispatch::IntegrationTest
 
     follow_redirect!
     assert_response :success
-    assert_match "Signed in as", response.body
+    assert_match(/aria-label="Open user menu"/, response.body)
+    refute_match "Signed in as", response.body
   end
 
   test "unverified user with correct password is redirected to verification" do

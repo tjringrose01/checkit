@@ -2,7 +2,7 @@ require "test_helper"
 
 class ApplicationHelperTest < ActiveSupport::TestCase
   test "build footer metadata uses configured build values" do
-    helper = Class.new { include ApplicationHelper }.new
+    helper = ApplicationController.helpers
 
     with_env(
       "APP_NAME" => "Checkit",
@@ -13,14 +13,19 @@ class ApplicationHelperTest < ActiveSupport::TestCase
     ) do
       assert_equal "dev-99", helper.build_identifier
       assert_equal "Commit abcdef123456", helper.version_or_revision_label
-      assert_includes helper.footer_metadata, "Build dev-99"
-      assert_includes helper.footer_metadata, "Environment dev"
-      assert_includes helper.footer_metadata, "Built 2026-04-26T00:00:00Z"
+      assert_equal [
+        "Checkit",
+        "Copyright #{Time.current.year}",
+        "Environment dev",
+        "Build dev-99"
+      ], helper.footer_metadata
+      assert_match "Built", helper.footer_build_timestamp
+      assert_match "data-local-datetime", helper.footer_build_timestamp
     end
   end
 
   test "build footer prefers application version over git sha when available" do
-    helper = Class.new { include ApplicationHelper }.new
+    helper = ApplicationController.helpers
 
     with_env(
       "APP_VERSION" => "v1.2.3",

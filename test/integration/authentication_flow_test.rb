@@ -64,8 +64,7 @@ class AuthenticationFlowTest < ActionDispatch::IntegrationTest
     get new_session_path
 
     assert_response :success
-    assert_match "Version v1.2.3", response.body
-    assert_match "Build dev-99", response.body
+    assert_match(/Checkit \| Copyright \d{4} \| Environment dev \| Build dev-99 \| Built/, response.body)
     assert_match "Environment dev", response.body
   ensure
     ENV["APP_BUILD_ENVIRONMENT"] = previous_environment
@@ -108,5 +107,16 @@ class AuthenticationFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
     assert_not @user.reload.must_change_password?
     assert @user.authenticate("ReplacementPass123")
+  end
+
+  test "authenticated layout uses home logo link and user menu actions" do
+    post session_path, params: { user_id: @user.user_id, password: "StrongerPass123" }
+    follow_redirect!
+
+    assert_response :success
+    assert_match(/class="logo" href="#{Regexp.escape(root_path)}"/, response.body)
+    assert_match(/aria-label="Open user menu"/, response.body)
+    assert_match "Sign out", response.body
+    refute_match "Signed in as", response.body
   end
 end

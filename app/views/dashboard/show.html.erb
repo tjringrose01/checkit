@@ -2,15 +2,10 @@
   <div>
     <p class="eyebrow">Checklist Workspace</p>
     <h1><%= @checklist.title %></h1>
-    <p>Signed in as <strong><%= current_user.user_id %></strong>.</p>
-    <% if current_user.admin? %>
-      <p><%= link_to "Open Admin Workspace", admin_root_path %></p>
-    <% end %>
   </div>
 
   <div class="admin-actions">
     <%= link_to "Back To Checklists", root_path, class: "secondary-link" %>
-    <%= button_to "Sign out", session_path, method: :delete, class: "secondary-button" %>
   </div>
 </section>
 

@@ -154,12 +154,14 @@ module ApplicationHelper
   def footer_metadata
     [
       application_name,
-      version_or_revision_label,
-      "Build #{build_identifier}",
+      "Copyright #{Time.current.year}",
       "Environment #{build_environment}",
-      "Built #{build_timestamp}",
-      "Copyright #{Time.current.year}"
+      "Build #{build_identifier}"
     ]
+  end
+
+  def footer_build_timestamp
+    safe_join(["Built ", browser_local_time(build_timestamp)])
   end
 
   def time_field_value(value)
