@@ -46,7 +46,7 @@ module Admin
     def update_role
       return redirect_to admin_user_path(@user), alert: "Admin account roles cannot be changed." if @user.admin?
 
-      if @user.update(role_params)
+      if @user.update(role: requested_role)
         redirect_to admin_user_path(@user), notice: "User role updated."
       else
         redirect_to admin_user_path(@user), alert: @user.errors.full_messages.to_sentence
@@ -78,8 +78,8 @@ module Admin
       )
     end
 
-    def role_params
-      params.require(:user).permit(:role)
+    def requested_role
+      params.require(:user).fetch(:role)
     end
 
   end

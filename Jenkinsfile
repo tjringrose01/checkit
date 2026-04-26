@@ -82,6 +82,25 @@ pipeline {
       }
     }
 
+    stage('SAST Scan') {
+      steps {
+        sh '''
+          set -eu
+          mkdir -p reports
+          docker run --rm \
+            -v "$PWD/reports:/app/reports" \
+            -w /app \
+            "${IMAGE_URI}:${GIT_SHA_SHORT:-unknown}" \
+            bundle exec brakeman \
+              --no-pager \
+              --force \
+              --exit-on-warn \
+              --output reports/brakeman-report.json \
+              --output reports/brakeman-report.txt
+        '''
+      }
+    }
+
     stage('Push Image') {
       steps {
         withCredentials([
