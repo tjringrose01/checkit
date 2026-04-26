@@ -348,6 +348,10 @@ Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
 - `MAILGUN_FROM_ADDRESS`: optional sender address; defaults to `postmaster@MAILGUN_DOMAIN`
 - `MAILGUN_BASE_URL`: optional Mailgun API base URL; defaults to `https://api.mailgun.net`
   - use `https://api.eu.mailgun.net` for EU-region domains
+- `APP_NAME`: optional application display name shown in the shared footer; defaults to `Checkit`
+- `APP_BUILD_ENVIRONMENT`: optional build or deployment environment label shown in the shared footer
+- `APP_BUILD_NUMBER`: optional build number shown in the shared footer
+- `APP_BUILD_TIMESTAMP`: optional build timestamp shown in the shared footer
 
 ### Run Tests
 
@@ -370,9 +374,14 @@ Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
 - The repository includes a `Jenkinsfile` that:
   1. checks out the SCM branch selected from `BRANCH_TAG`
   2. builds the application container from `Dockerfile`
-  3. tags the image with the short Git SHA and sanitized branch name
-  4. logs into the Docker registry with Jenkins-managed credentials
-  5. pushes both tags to the configured repository
+  3. bakes build metadata into the image for the shared application footer:
+     - application name
+     - branch or environment
+     - Jenkins build number
+     - build timestamp
+  4. tags the image with the short Git SHA and sanitized branch name
+  5. logs into the Docker registry with Jenkins-managed credentials
+  6. pushes both tags to the configured repository
 
 #### Jenkins Configuration
 

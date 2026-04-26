@@ -233,6 +233,18 @@
         gap: 10px;
       }
 
+      .app-footer {
+        margin-top: 32px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .app-footer p {
+        margin-bottom: 8px;
+      }
+
       @media (max-width: 700px) {
         .page-header,
         .checklist-card__header,
@@ -430,6 +442,11 @@
       <% end %>
 
       <%= yield %>
+
+      <footer class="app-footer">
+        <p><strong><%= application_name %></strong></p>
+        <p><%= footer_metadata.join(" | ") %></p>
+      </footer>
     </main>
   </body>
 </html>

@@ -50,6 +50,22 @@ class AuthenticationFlowTest < ActionDispatch::IntegrationTest
     assert_equal 6, @user.reload.failed_login_attempts
   end
 
+  test "sign in page shows build metadata footer" do
+    previous_environment = ENV["APP_BUILD_ENVIRONMENT"]
+    previous_number = ENV["APP_BUILD_NUMBER"]
+
+    ENV["APP_BUILD_ENVIRONMENT"] = "dev"
+    ENV["APP_BUILD_NUMBER"] = "99"
+
+    get new_session_path
+
+    assert_response :success
+    assert_match "Build dev-99", response.body
+  ensure
+    ENV["APP_BUILD_ENVIRONMENT"] = previous_environment
+    ENV["APP_BUILD_NUMBER"] = previous_number
+  end
+
   test "disabled accounts cannot sign in" do
     @user.update!(enabled: false)
 

@@ -45,12 +45,21 @@ pipeline {
             script: 'git rev-parse --short=12 HEAD',
             returnStdout: true
           ).trim()
+          env.APP_BUILD_TIMESTAMP = sh(
+            script: 'date -u +%Y-%m-%dT%H:%M:%SZ',
+            returnStdout: true
+          ).trim()
+          env.APP_NAME = 'Checkit'
           env.IMAGE_URI = "${env.DOCKER_REGISTRY}/${env.DOCKER_IMAGE_REPOSITORY}"
         }
 
         sh '''
           set -eu
           docker build \
+            --build-arg APP_NAME="${APP_NAME}" \
+            --build-arg APP_BUILD_ENVIRONMENT="${BRANCH_TAG}" \
+            --build-arg APP_BUILD_NUMBER="${BUILD_NUMBER}" \
+            --build-arg APP_BUILD_TIMESTAMP="${APP_BUILD_TIMESTAMP}" \
             --tag "${IMAGE_URI}:${GIT_SHA_SHORT}" \
             --tag "${IMAGE_URI}:${BRANCH_TAG}" \
             .

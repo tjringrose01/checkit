@@ -115,6 +115,35 @@ module ApplicationHelper
     ((completed_items.to_f / total_items) * 100).round
   end
 
+  def application_name
+    ENV.fetch("APP_NAME", "Checkit")
+  end
+
+  def build_environment
+    ENV.fetch("APP_BUILD_ENVIRONMENT", Rails.env)
+  end
+
+  def build_number
+    ENV.fetch("APP_BUILD_NUMBER", "local")
+  end
+
+  def build_identifier
+    "#{build_environment}-#{build_number}"
+  end
+
+  def build_timestamp
+    ENV.fetch("APP_BUILD_TIMESTAMP", "unknown")
+  end
+
+  def footer_metadata
+    [
+      application_name,
+      "Build #{build_identifier}",
+      "Built #{build_timestamp}",
+      "Copyright #{Time.current.year}"
+    ]
+  end
+
   def time_field_value(value)
     return if value.blank?
 
