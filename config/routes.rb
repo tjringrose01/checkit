@@ -15,9 +15,12 @@ Rails.application.routes.draw do
       resources :checklist_items, except: [ :index, :show ]
       resource :checklist_item_import, only: [ :create ]
     end
-    resources :users, only: [] do
+    resources :users, only: %i[index show destroy] do
       member do
+        patch :enable
+        patch :disable
         patch :unlock
+        patch :reset_password
       end
     end
   end

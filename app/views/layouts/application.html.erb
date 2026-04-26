@@ -152,6 +152,8 @@
 
       button,
       input[type="submit"] {
+        appearance: none;
+        -webkit-appearance: none;
         border: 0;
         padding: 12px 16px;
         cursor: pointer;
@@ -360,8 +362,10 @@
 
             var button = form.querySelector("button, input[type='submit']");
             var checklistItem = form.closest("[data-checklist-item-id]");
+            var timezoneField = form.querySelector("input[name='timezone_offset_minutes']");
             if (!button || !checklistItem) return;
 
+            if (timezoneField) timezoneField.value = String(new Date().getTimezoneOffset());
             button.disabled = true;
 
             fetch(form.action, {

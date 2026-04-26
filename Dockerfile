@@ -4,6 +4,8 @@ ARG APP_NAME=Checkit
 ARG APP_BUILD_ENVIRONMENT=dev
 ARG APP_BUILD_NUMBER=local
 ARG APP_BUILD_TIMESTAMP=unknown
+ARG APP_VERSION=
+ARG APP_GIT_SHA=unknown
 
 RUN apt-get update -qq \
     && apt-get install --no-install-recommends -y build-essential libsqlite3-dev git curl \
@@ -17,7 +19,9 @@ ENV BUNDLE_PATH=/usr/local/bundle \
     APP_NAME=${APP_NAME} \
     APP_BUILD_ENVIRONMENT=${APP_BUILD_ENVIRONMENT} \
     APP_BUILD_NUMBER=${APP_BUILD_NUMBER} \
-    APP_BUILD_TIMESTAMP=${APP_BUILD_TIMESTAMP}
+    APP_BUILD_TIMESTAMP=${APP_BUILD_TIMESTAMP} \
+    APP_VERSION=${APP_VERSION} \
+    APP_GIT_SHA=${APP_GIT_SHA}
 
 COPY Gemfile ./
 RUN bundle install

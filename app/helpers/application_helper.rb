@@ -135,10 +135,28 @@ module ApplicationHelper
     ENV.fetch("APP_BUILD_TIMESTAMP", "unknown")
   end
 
+  def application_version
+    ENV["APP_VERSION"].presence
+  end
+
+  def git_sha
+    ENV.fetch("APP_GIT_SHA", "unknown")
+  end
+
+  def version_or_revision_label
+    if application_version.present?
+      "Version #{application_version}"
+    else
+      "Commit #{git_sha.first(12)}"
+    end
+  end
+
   def footer_metadata
     [
       application_name,
+      version_or_revision_label,
       "Build #{build_identifier}",
+      "Environment #{build_environment}",
       "Built #{build_timestamp}",
       "Copyright #{Time.current.year}"
     ]

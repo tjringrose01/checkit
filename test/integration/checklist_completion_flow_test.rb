@@ -105,9 +105,9 @@ class ChecklistCompletionFlowTest < ActionDispatch::IntegrationTest
   test "user can complete an item without a redirect via json" do
     sign_in_as(@user)
 
-    travel_to(Time.utc(2026, 4, 23, 9, 0, 0)) do
+    travel_to(Time.utc(2026, 4, 23, 13, 0, 0)) do
       patch checklist_item_completion_path(@active_item),
-            params: { completed: true },
+            params: { completed: true, timezone_offset_minutes: 240 },
             headers: { "ACCEPT" => "application/json" }
     end
 

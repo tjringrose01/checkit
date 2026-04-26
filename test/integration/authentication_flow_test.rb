@@ -53,17 +53,33 @@ class AuthenticationFlowTest < ActionDispatch::IntegrationTest
   test "sign in page shows build metadata footer" do
     previous_environment = ENV["APP_BUILD_ENVIRONMENT"]
     previous_number = ENV["APP_BUILD_NUMBER"]
+    previous_version = ENV["APP_VERSION"]
+    previous_git_sha = ENV["APP_GIT_SHA"]
 
     ENV["APP_BUILD_ENVIRONMENT"] = "dev"
     ENV["APP_BUILD_NUMBER"] = "99"
+    ENV["APP_VERSION"] = "v1.2.3"
+    ENV["APP_GIT_SHA"] = "abcdef1234567890"
 
     get new_session_path
 
     assert_response :success
+    assert_match "Version v1.2.3", response.body
     assert_match "Build dev-99", response.body
+    assert_match "Environment dev", response.body
   ensure
     ENV["APP_BUILD_ENVIRONMENT"] = previous_environment
     ENV["APP_BUILD_NUMBER"] = previous_number
+    ENV["APP_VERSION"] = previous_version
+    ENV["APP_GIT_SHA"] = previous_git_sha
+  end
+
+  test "sign in page renders an explicitly styled submit button" do
+    get new_session_path
+
+    assert_response :success
+    assert_match(/value="Sign in"/, response.body)
+    assert_match(/class="primary-button"/, response.body)
   end
 
   test "disabled accounts cannot sign in" do

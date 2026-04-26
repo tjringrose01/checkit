@@ -32,6 +32,14 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
   end
 
+  test "non-admin users cannot access admin user management" do
+    sign_in_as(@user)
+
+    get admin_users_path
+
+    assert_redirected_to root_path
+  end
+
   test "admin can create a checklist and checklist item" do
     sign_in_as(@admin)
 
@@ -192,10 +200,82 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
 
     patch unlock_admin_user_path(@user)
 
-    assert_redirected_to admin_root_path
+    assert_redirected_to admin_user_path(@user)
     assert_equal 0, @user.reload.failed_login_attempts
     assert_nil @user.locked_at
     assert_equal [ @user.email ], ActionMailer::Base.deliveries.last.to
+  end
+
+  test "admin can view the user management catalog" do
+    sign_in_as(@admin)
+
+    get admin_users_path
+
+    assert_response :success
+    assert_match "User Administration", response.body
+    assert_match @user.user_id, response.body
+    assert_match "Manage User", response.body
+  end
+
+  test "admin can reset a user password and force a password change" do
+    sign_in_as(@admin)
+
+    patch reset_password_admin_user_path(@user), params: {
+      user: {
+        password: "ResetPass1234",
+        password_confirmation: "ResetPass1234"
+      }
+    }
+
+    assert_redirected_to admin_user_path(@user)
+    @user.reload
+    assert @user.authenticate("ResetPass1234")
+    assert @user.must_change_password?
+    assert_equal 0, @user.failed_login_attempts
+    assert_nil @user.locked_at
+  end
+
+  test "admin can disable and enable a user" do
+    sign_in_as(@admin)
+
+    patch disable_admin_user_path(@user)
+    assert_redirected_to admin_user_path(@user)
+    assert_not @user.reload.enabled?
+
+    patch enable_admin_user_path(@user)
+    assert_redirected_to admin_user_path(@user)
+    assert @user.reload.enabled?
+  end
+
+  test "admin cannot disable their own account" do
+    sign_in_as(@admin)
+
+    patch disable_admin_user_path(@admin)
+
+    assert_redirected_to admin_user_path(@admin)
+    assert @admin.reload.enabled?
+  end
+
+  test "admin can delete another user" do
+    sign_in_as(@admin)
+
+    assert_difference -> { User.count }, -1 do
+      delete admin_user_path(@user)
+    end
+
+    assert_redirected_to admin_users_path
+    assert_nil User.find_by(id: @user.id)
+  end
+
+  test "admin cannot delete their own account" do
+    sign_in_as(@admin)
+
+    assert_no_difference -> { User.count } do
+      delete admin_user_path(@admin)
+    end
+
+    assert_redirected_to admin_user_path(@admin)
+    assert_not_nil User.find_by(id: @admin.id)
   end
 
   private

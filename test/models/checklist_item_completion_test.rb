@@ -39,6 +39,20 @@ class ChecklistItemCompletionTest < ActiveSupport::TestCase
     assert_equal "early", completion.deviation_status
   end
 
+  test "calculates deviation from browser-local wall clock rather than raw utc timestamp" do
+    completion = ChecklistItemCompletion.new(
+      user: @user,
+      checklist_item: @checklist_item,
+      actual_completed_at: Time.utc(2026, 4, 23, 13, 5, 0)
+    )
+    completion.browser_timezone_offset_minutes = 240
+
+    completion.save!
+
+    assert_equal 300, completion.completion_deviation_seconds
+    assert_equal "late", completion.deviation_status
+  end
+
   test "clears completion state when actual completion is removed" do
     completion = ChecklistItemCompletion.create!(
       user: @user,

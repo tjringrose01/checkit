@@ -9,6 +9,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 3. Web Frontend: Build a responsive web frontend using a modern framework such as React or Vue. The interface must work well in iPhone and Android browsers.
 4. Checklist Interaction: The main user landing page must show a list of available checklists. Users must be able to open a specific checklist, view only that checklist's items, check them off, and have those changes synced with the backend.
    - Checklist item content should support rendering stored HTML in the application UI.
+   - Development builds should include a default `SPL-Shakedown Checklist` so the app has representative checklist data immediately after setup.
    - Each checklist must have a start time.
    - Each checklist item's desired time must be stored as a number of minutes relative to the checklist start time.
    - Checklist start time is time-of-day only and must not depend on a stored date.
@@ -21,9 +22,14 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
    - The admin workspace must start with a list of checklists.
    - Admin users must open a specific checklist before managing that checklist's items.
    - Checklist metadata editing and checklist item management must happen from the same checklist workspace rather than separate admin pages.
+   - The admin workspace must also expose an admin-only user management area.
+   - The user management area must support password resets, enable and disable actions, unlock actions, and user deletion.
 6. User Roles: Support at least two roles:
    - Checklist Creator / Admin: can create and manage checklists.
    - User: can view and interact with checklists.
+7. Shared Footer: The application must display a shared footer on all pages, including the login page.
+   - The footer should include common build and runtime metadata such as application name, application version when available, immutable source revision when a version is not available, build identifier, build timestamp, and environment or branch.
+   - The footer may also include copyright information.
 
 ## Recommended Technical Direction
 
@@ -144,6 +150,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - `user`: can view and interact with checklists that are available to them
 - Authorization must be enforced server-side on every protected action.
 - Frontend route guards or conditional rendering may improve UX, but frontend checks must never replace backend authorization.
+- User administration functions such as password resets, enable and disable actions, unlock actions, and user deletion must be accessible only to authenticated `admin` users.
 
 ### Checklist And Data Model
 
@@ -167,6 +174,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - The system must define whether completion state is global or per user.
 - The initial implementation should treat checklist item completion as per-user state unless a later requirement overrides that behavior.
 - Deviation calculations must treat checklist start time as time-of-day only and compare item target time against the actual completion date.
+- Deviation calculations must compare the checklist target time against the user's browser-local completion wall clock and must not drift because of UTC date or timezone offsets.
 - Actual completion display should assume the same day context and render as time-only unless a later requirement asks for the date.
 - Checklist start time and calculated target time must render as wall-clock times and must not shift by timezone offset.
 - Checklist progress percentage should use target-time progression when target offsets are available and should fall back to task-count progression otherwise.
@@ -178,6 +186,8 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - The management interface must be accessible only to authenticated `admin` users.
 - Admin users must be able to:
   - start from a checklist list view in the admin workspace
+  - open a user administration page from the admin workspace
+  - open a specific user record to manage that user
   - open a specific checklist to manage its items
   - edit checklist title, status, notes, and start time from that same checklist workspace
   - create checklists
@@ -187,11 +197,23 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - edit checklist items
   - delete checklist items
   - upload checklist items in bulk
+  - reset user passwords
+  - enable users
+  - disable users
   - unlock locked user accounts
+  - delete users
 - The initial bulk upload format must be CSV.
 - CSV upload validation must reject malformed files and return actionable validation errors.
 - Bulk upload validation must apply the same server-side validation rules as manual checklist item creation.
 - The current implementation also sends an account-unlocked email when an Admin unlocks a locked user.
+- Admin user-management actions should protect against obvious lockout scenarios such as deleting or disabling the current admin account.
+
+### Development Seed Data
+
+- Development builds should seed representative default checklist data.
+- The default seeded checklist should include `SPL-Shakedown Checklist`.
+- Default development seed data must be idempotent.
+- Default development seed data must not be seeded into test or production builds unless a later requirement explicitly asks for it.
 
 ### Frontend Requirements
 
@@ -207,11 +229,19 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - see persisted checklist state after refresh
   - see desired completion time, actual completion time, and deviation status for checklist items where applicable
 - The admin UI must allow secure checklist and user-management actions appropriate to the `admin` role.
+- The admin UI must provide an admin-only user management page for user access and password administration.
 - Admin checklist forms must use browser-compatible AM/PM time input formatting so checklist start times render and submit correctly.
 - Checklist time displays must use browser-local rendering for start, scheduled, and actual completion times.
 - Unless otherwise specified, checklist time displays must render as `MM/DD/YY hh:mm AM/PM TZ` in the browser timezone.
 - Time-only checklist displays such as start, scheduled, and actual should render as `hh:mm AM/PM TZ`.
 - Checklist start and target time displays should use `hh:mm AM/PM` wall-clock formatting without timezone shifting.
+- A shared footer should be visible on application pages, including the sign-in page.
+- The shared footer should show application and build metadata such as:
+  - application name
+  - build identifier such as `dev-99`
+  - build timestamp
+  - environment or branch label
+  - copyright information when configured
 
 ### Sync Behavior
 
@@ -260,6 +290,17 @@ Reference used for these conventions:
 - The repository should include a `Dockerfile` and a documented local startup flow.
 - If multiple services are required, the repository should include `docker-compose.yml` or an equivalent container orchestration file for local development.
 
+### Build And Release Traceability
+
+- Every published container image must be traceable back to a specific source revision.
+- CI builds must publish an immutable image tag based on the Git commit SHA.
+- CI builds may also publish a semantic version tag when a release version is explicitly provided.
+- Environment tags such as `dev`, `test`, and `prod` are deployment aliases and must not be treated as the only source of version identity.
+- The application footer must display either:
+  - an explicit application version, or
+  - an immutable source revision such as the Git SHA
+- The build metadata shown in the application should be consistent with the tags published by CI.
+
 ### Testing And Quality
 
 - Core authentication, authorization, lockout, checklist interaction, CSV upload behavior, and forced password change behavior must have automated test coverage.
@@ -271,6 +312,7 @@ Reference used for these conventions:
 - Checklist timing and deviation calculations must be tested.
 - Regression tests must cover checklist time rendering and submission, including browser-safe AM/PM time input formatting and non-Time-backed values used during rendering.
 - Regression tests must cover browser-local time markup for displayed checklist times.
+- Regression tests must cover deviation calculations against browser-local completion time so checklist timing does not drift by timezone offset.
 
 ## Non-Negotiable Guardrails For AI Agents
 
@@ -331,6 +373,7 @@ Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
 - Responsive user checklist dashboard with per-user completion state and timing deviation display
 - Admin checklist management, checklist item management, CSV upload, and account unlock flow
 - Action Mailer Mailgun delivery support via runtime environment secrets
+- Dev-only default `SPL-Shakedown Checklist` seed data
 
 ### Start The App
 
@@ -349,9 +392,42 @@ Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
 - `MAILGUN_BASE_URL`: optional Mailgun API base URL; defaults to `https://api.mailgun.net`
   - use `https://api.eu.mailgun.net` for EU-region domains
 - `APP_NAME`: optional application display name shown in the shared footer; defaults to `Checkit`
+- `APP_VERSION`: optional semantic version or release label shown in the shared footer and baked into CI-built images when provided
+- `APP_GIT_SHA`: optional Git commit SHA shown in the shared footer when `APP_VERSION` is not provided
 - `APP_BUILD_ENVIRONMENT`: optional build or deployment environment label shown in the shared footer
 - `APP_BUILD_NUMBER`: optional build number shown in the shared footer
 - `APP_BUILD_TIMESTAMP`: optional build timestamp shown in the shared footer
+
+### Default Development Checklist Data
+
+- `db:seed` includes a default `SPL-Shakedown Checklist` only when:
+  - Rails is running in the `development` environment, and
+  - `APP_BUILD_ENVIRONMENT=dev`
+- The seed is idempotent and updates the checklist by title if it already exists.
+- The default development checklist is not seeded for `test`, `prod`, or other non-dev build environments.
+
+### Running A Published Docker Image
+
+If you run the published Docker Hub image directly instead of `docker compose`, do not mount the entire `/app/db` directory from the host.
+
+Why:
+
+- `/app/db` in the image contains both the runtime SQLite database file and Rails source files needed for setup:
+  - `db/migrate`
+  - `db/schema.rb`
+  - `db/seeds.rb`
+- Mounting a host directory onto `/app/db` hides those files inside the container.
+- If those files are hidden, `bin/rails db:prepare` cannot create the application schema, and tables such as `users` will be missing.
+
+Use one of these approaches instead:
+
+1. Do not mount `/app/db` at all if you do not need database persistence.
+2. If you need SQLite persistence, mount only the database file, for example:
+   - `~/checkit_dev/development.sqlite3:/app/db/development.sqlite3`
+
+Do not use a bind mount like:
+
+- `~/checkit_dev/db:/app/db`
 
 ### Run Tests
 
@@ -376,12 +452,17 @@ Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
   2. builds the application container from `Dockerfile`
   3. bakes build metadata into the image for the shared application footer:
      - application name
+     - application version when available
+     - Git commit SHA
      - branch or environment
      - Jenkins build number
      - build timestamp
-  4. tags the image with the short Git SHA and sanitized branch name
+  4. tags the image with:
+     - the short Git SHA
+     - the sanitized environment tag
+     - the explicit application version, when provided
   5. logs into the Docker registry with Jenkins-managed credentials
-  6. pushes both tags to the configured repository
+  6. pushes the generated tags to the configured repository
 
 #### Jenkins Configuration
 
@@ -403,6 +484,10 @@ Create these Jenkins pipeline environment variables:
     - `dev` -> `dev`
     - `test` -> `test`
     - `prod` -> `main`
+- `APP_VERSION`
+  - Optional release version such as `v0.3.0`
+  - If set, Jenkins also tags and pushes `${DOCKER_IMAGE_REPOSITORY}:${APP_VERSION}`
+  - If not set, the image still includes immutable Git SHA metadata and pushes the Git SHA tag
 
 #### Create The Jenkins Secret
 
@@ -432,6 +517,7 @@ For this repository, the credential should authenticate to the public Docker Hub
    - `BRANCH_TAG=dev` for the dev deployment job
    - `BRANCH_TAG=test` for the test deployment job
    - `BRANCH_TAG=prod` for the production deployment job
+   - `APP_VERSION=v0.3.0` only for intentional release builds that should publish a semantic version tag
 4. Run the pipeline.
 
 If you create separate Jenkins jobs for each environment, set `BRANCH_TAG` per job:
@@ -446,6 +532,27 @@ When `BRANCH_TAG=prod`, the pipeline checks out `main` from SCM and still tags t
 
 - `${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPOSITORY}:${short_git_sha}`
 - `${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPOSITORY}:${BRANCH_TAG}`
+- `${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPOSITORY}:${APP_VERSION}` when `APP_VERSION` is set
+
+#### Footer Metadata In Built Images
+
+The Jenkins build bakes these values into the image so the running application can display them in the shared footer:
+
+- `APP_NAME`
+- `APP_VERSION` when provided
+- `APP_GIT_SHA`
+- `APP_BUILD_ENVIRONMENT`
+- `APP_BUILD_NUMBER`
+- `APP_BUILD_TIMESTAMP`
+
+The resulting footer should make a running container traceable to:
+
+- the application name
+- the release version when one exists
+- otherwise the immutable Git SHA
+- the Jenkins build identifier such as `dev-99`
+- the build timestamp
+- the environment label
 
 ### MVP Status
 

@@ -1,0 +1,79 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Admin Workspace</p>
+    <h1><%= @user.user_id %></h1>
+    <p>Manage access state, reset the password, and remove this user when appropriate.</p>
+  </div>
+
+  <div class="admin-actions">
+    <%= link_to "Back To Users", admin_users_path, class: "secondary-link" %>
+    <%= link_to "Back To Checklists", admin_root_path, class: "secondary-link" %>
+  </div>
+</section>
+
+<section class="checklists">
+  <article class="checklist-card">
+    <header class="checklist-card__header">
+      <div>
+        <p class="eyebrow">User Details</p>
+        <h2><%= @user.email %></h2>
+      </div>
+    </header>
+
+    <p>Role: <strong><%= @user.role %></strong></p>
+    <p>Status: <strong><%= @user.enabled? ? "Enabled" : "Disabled" %></strong></p>
+    <p>Locked: <strong><%= @user.locked? ? "Yes" : "No" %></strong></p>
+    <p>Failed login attempts: <strong><%= @user.failed_login_attempts %></strong></p>
+    <p>Must change password: <strong><%= @user.must_change_password? ? "Yes" : "No" %></strong></p>
+  </article>
+
+  <article class="checklist-card">
+    <header class="checklist-card__header">
+      <div>
+        <p class="eyebrow">Access Control</p>
+        <h2>Manage Access</h2>
+      </div>
+    </header>
+
+    <div class="admin-actions">
+      <% if @user.enabled? %>
+        <%= button_to "Disable User", disable_admin_user_path(@user), method: :patch, class: "secondary-button" %>
+      <% else %>
+        <%= button_to "Enable User", enable_admin_user_path(@user), method: :patch, class: "primary-button" %>
+      <% end %>
+
+      <% if @user.locked? %>
+        <%= button_to "Unlock User", unlock_admin_user_path(@user), method: :patch, class: "primary-button" %>
+      <% end %>
+
+      <%= button_to "Delete User", admin_user_path(@user), method: :delete, class: "secondary-button" %>
+    </div>
+  </article>
+
+  <article class="checklist-card">
+    <header class="checklist-card__header">
+      <div>
+        <p class="eyebrow">Password Administration</p>
+        <h2>Reset Password</h2>
+      </div>
+    </header>
+
+    <%= form_with url: reset_password_admin_user_path(@user), method: :patch do |form| %>
+      <div class="form-grid">
+        <div>
+          <%= form.label :password, "New password" %>
+          <%= form.password_field :password, name: "user[password]", required: true, minlength: 12, autocomplete: "new-password" %>
+        </div>
+
+        <div>
+          <%= form.label :password_confirmation, "Confirm password" %>
+          <%= form.password_field :password_confirmation, name: "user[password_confirmation]", required: true, minlength: 12, autocomplete: "new-password" %>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <%= form.submit "Reset Password", class: "primary-button" %>
+      </div>
+    <% end %>
+  </article>
+</section>

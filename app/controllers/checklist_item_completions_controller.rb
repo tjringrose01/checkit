@@ -5,6 +5,7 @@ class ChecklistItemCompletionsController < ApplicationController
   def update
     checklist_item = ChecklistItem.joins(:checklist).merge(Checklist.active).find(params[:checklist_item_id])
     completion = current_user.checklist_item_completions.find_or_initialize_by(checklist_item: checklist_item)
+    completion.browser_timezone_offset_minutes = timezone_offset_minutes_param
     completion.actual_completed_at = completed_param? ? Time.current : nil
 
     if completion.save
@@ -35,5 +36,9 @@ class ChecklistItemCompletionsController < ApplicationController
 
   def completed_param?
     ActiveModel::Type::Boolean.new.cast(params[:completed])
+  end
+
+  def timezone_offset_minutes_param
+    Integer(params[:timezone_offset_minutes].presence || 0, exception: false) || 0
   end
 end

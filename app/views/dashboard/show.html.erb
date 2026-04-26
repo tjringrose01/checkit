@@ -70,7 +70,7 @@
 
           <%= button_to checklist_item_completion_path(checklist_item),
                         method: :patch,
-                        params: { completed: !completed },
+                        params: { completed: !completed, timezone_offset_minutes: 0 },
                         class: completed ? "secondary-button" : "primary-button",
                         form: { data: { remote_completion: true } },
                         data: { role: "completion-button" } do %>

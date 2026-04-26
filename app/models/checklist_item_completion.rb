@@ -1,6 +1,7 @@
 class ChecklistItemCompletion < ApplicationRecord
   belongs_to :user
   belongs_to :checklist_item
+  attr_accessor :browser_timezone_offset_minutes
 
   validates :user_id, uniqueness: { scope: :checklist_item_id }
   validates :completed, inclusion: { in: [ true, false ] }
@@ -32,10 +33,17 @@ class ChecklistItemCompletion < ApplicationRecord
     end
 
     desired_completion_at = checklist_item&.desired_completion_at(reference_time: actual_completed_at)
+    comparison_time = normalized_actual_completion_time
     self.completion_deviation_seconds =
-      if desired_completion_at.present?
-        actual_completed_at.to_i - desired_completion_at.to_i
+      if desired_completion_at.present? && comparison_time.present?
+        comparison_time.to_i - desired_completion_at.to_i
       end
+  end
+
+  def normalized_actual_completion_time
+    return if actual_completed_at.blank?
+
+    actual_completed_at.in_time_zone("UTC") - browser_timezone_offset_minutes.to_i.minutes
   end
 
   def actual_completion_state_is_consistent
