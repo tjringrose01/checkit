@@ -13,9 +13,4 @@ Rails.application.configure do
   config.action_mailer.perform_caching = false
   config.action_mailer.raise_delivery_errors = true
   config.action_mailer.delivery_method = :mailgun_api
-  config.action_mailer.mailgun_api_settings = {
-    api_key: config.x.mailgun.api_key,
-    domain: config.x.mailgun.domain,
-    base_url: config.x.mailgun.base_url
-  }
 end
