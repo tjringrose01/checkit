@@ -1,6 +1,10 @@
 class User < ApplicationRecord
   USER_ID_FORMAT = /\A[a-z0-9_.-]+\z/
   EMAIL_FORMAT = /\A(?=.{1,254}\z)[^@\s]+@[^@\s]+\.[^@\s]+\z/
+  VERIFICATION_CODE_LENGTH = 6
+  VERIFICATION_CODE_TTL = 15.minutes
+  VERIFICATION_RESEND_INTERVAL = 1.minute
+  MAX_VERIFICATION_ATTEMPTS = 5
   WEAK_PASSWORDS = %w[
     password12345
     password123456
@@ -8,6 +12,7 @@ class User < ApplicationRecord
     qwerty123456
     letmein123456
   ].freeze
+  attr_accessor :skip_initial_email_verification_default
 
   has_secure_password
 
@@ -31,6 +36,7 @@ class User < ApplicationRecord
   validates :password, length: { minimum: 12 }, allow_nil: true
 
   before_validation :normalize_identity_fields
+  before_validation :default_email_verified_at, on: :create
   validate :password_not_obviously_weak, if: :password_present?
 
   def locked?
@@ -38,7 +44,55 @@ class User < ApplicationRecord
   end
 
   def enabled_for_authentication?
-    enabled?
+    enabled? && email_verified?
+  end
+
+  def email_verified?
+    email_verified_at.present?
+  end
+
+  def verification_pending?
+    !email_verified?
+  end
+
+  def verification_code_expired?
+    verification_code_sent_at.blank? || verification_code_sent_at < VERIFICATION_CODE_TTL.ago
+  end
+
+  def verification_resend_allowed?
+    verification_code_sent_at.blank? || verification_code_sent_at <= VERIFICATION_RESEND_INTERVAL.ago
+  end
+
+  def prepare_email_verification!(code: self.class.generate_verification_code)
+    update!(
+      email_verified_at: nil,
+      verification_code_digest: digest_verification_code(code),
+      verification_code_sent_at: Time.current,
+      verification_attempts: 0
+    )
+    code
+  end
+
+  def verify_email_code!(code)
+    increment!(:verification_attempts)
+    return false if verification_attempts > MAX_VERIFICATION_ATTEMPTS
+    return false if verification_code_expired?
+    return false if verification_code_digest.blank?
+    return false unless BCrypt::Password.new(verification_code_digest).is_password?(code.to_s)
+
+    update!(
+      email_verified_at: Time.current,
+      verification_code_digest: nil,
+      verification_code_sent_at: nil,
+      verification_attempts: 0
+    )
+    true
+  rescue BCrypt::Errors::InvalidHash
+    false
+  end
+
+  def self.generate_verification_code
+    format("%0#{VERIFICATION_CODE_LENGTH}d", SecureRandom.random_number(10**VERIFICATION_CODE_LENGTH))
   end
 
   def record_failed_login!
@@ -67,9 +121,19 @@ class User < ApplicationRecord
 
   private
 
+  def digest_verification_code(code)
+    BCrypt::Password.create(code.to_s)
+  end
+
   def normalize_identity_fields
     self.user_id = user_id.to_s.strip.downcase.presence
     self.email = email.to_s.strip.downcase.presence
+  end
+
+  def default_email_verified_at
+    return if skip_initial_email_verification_default
+
+    self.email_verified_at ||= Time.current
   end
 
   def password_present?

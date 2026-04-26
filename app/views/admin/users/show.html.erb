@@ -36,17 +36,21 @@
     </header>
 
     <div class="admin-actions">
-      <% if @user.enabled? %>
-        <%= button_to "Disable User", disable_admin_user_path(@user), method: :patch, class: "secondary-button" %>
-      <% else %>
-        <%= button_to "Enable User", enable_admin_user_path(@user), method: :patch, class: "primary-button" %>
+      <% unless @user.admin? %>
+        <% if @user.enabled? %>
+          <%= button_to "Disable User", disable_admin_user_path(@user), method: :patch, class: "secondary-button" %>
+        <% else %>
+          <%= button_to "Enable User", enable_admin_user_path(@user), method: :patch, class: "primary-button" %>
+        <% end %>
       <% end %>
 
       <% if @user.locked? %>
         <%= button_to "Unlock User", unlock_admin_user_path(@user), method: :patch, class: "primary-button" %>
       <% end %>
 
-      <%= button_to "Delete User", admin_user_path(@user), method: :delete, class: "secondary-button" %>
+      <% unless @user.admin? %>
+        <%= button_to "Delete User", admin_user_path(@user), method: :delete, class: "secondary-button" %>
+      <% end %>
     </div>
   </article>
 

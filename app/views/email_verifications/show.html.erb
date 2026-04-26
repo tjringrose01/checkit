@@ -1,0 +1,24 @@
+<section>
+  <h1>Verify Email</h1>
+  <p>Enter the verification code sent to <strong><%= @user.email %></strong>.</p>
+
+  <%= form_with url: email_verification_path, method: :post do |form| %>
+    <div>
+      <%= form.label :code, "Verification code" %>
+      <%= form.text_field :code,
+                          name: "email_verification[code]",
+                          required: true,
+                          inputmode: "numeric",
+                          autocomplete: "one-time-code" %>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <%= form.submit "Verify Email", class: "primary-button" %>
+    </div>
+  <% end %>
+
+  <div style="margin-top: 16px;" class="admin-actions">
+    <%= button_to "Resend Code", resend_email_verification_path, method: :patch, class: "secondary-button" %>
+    <%= link_to "Back To Sign In", new_session_path, class: "secondary-link" %>
+  </div>
+</section>

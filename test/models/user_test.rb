@@ -108,4 +108,34 @@ class UserTest < ActiveSupport::TestCase
     assert_equal true, user.enabled
     assert user.enabled_for_authentication?
   end
+
+  test "unverified users are not enabled for authentication" do
+    user = User.new(
+      user_id: "member07",
+      email: "member07@example.com",
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123",
+      email_verified_at: nil
+    )
+    user.skip_initial_email_verification_default = true
+    user.save!
+
+    assert_not user.enabled_for_authentication?
+  end
+
+  test "email verification code can activate a pending user" do
+    user = User.create!(
+      user_id: "member08",
+      email: "member08@example.com",
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123",
+      email_verified_at: nil
+    )
+    code = user.prepare_email_verification!(code: "123456")
+
+    assert_equal "123456", code
+    assert user.verify_email_code!("123456")
+    assert user.reload.email_verified?
+    assert_nil user.verification_code_digest
+  end
 end

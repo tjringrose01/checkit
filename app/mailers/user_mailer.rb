@@ -1,4 +1,22 @@
 class UserMailer < ApplicationMailer
+  def registration_verification(user, code)
+    @user = user
+    @code = code
+
+    mail(to: @user.email, subject: "Verify your Checkit account") do |format|
+      format.text do
+        render plain: <<~BODY
+          Hello #{@user.user_id},
+
+          Your Checkit verification code is #{@code}.
+
+          Enter this code in the application to finish registering your account.
+          The code expires in 15 minutes.
+        BODY
+      end
+    end
+  end
+
   def account_unlocked(user)
     @user = user
 

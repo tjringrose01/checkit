@@ -17,8 +17,7 @@ module Admin
     end
 
     def disable
-      return redirect_to admin_user_path(@user), alert: "You cannot disable your own account." if @user == current_user
-      return redirect_to admin_user_path(@user), alert: "At least one admin account must remain enabled." if disabling_last_enabled_admin?(@user)
+      return redirect_to admin_user_path(@user), alert: "Admin accounts cannot be disabled." if @user.admin?
 
       @user.update!(enabled: false)
 
@@ -45,8 +44,7 @@ module Admin
     end
 
     def destroy
-      return redirect_to admin_user_path(@user), alert: "You cannot delete your own account." if @user == current_user
-      return redirect_to admin_user_path(@user), alert: "At least one admin account must remain." if deleting_last_admin?(@user)
+      return redirect_to admin_user_path(@user), alert: "Admin accounts cannot be deleted." if @user.admin?
 
       @user.destroy
       redirect_to admin_users_path, notice: "User deleted."
@@ -70,12 +68,5 @@ module Admin
       )
     end
 
-    def deleting_last_admin?(user)
-      user.admin? && User.admin.where.not(id: user.id).none?
-    end
-
-    def disabling_last_enabled_admin?(user)
-      user.admin? && user.enabled? && User.admin.where(enabled: true).where.not(id: user.id).none?
-    end
   end
 end

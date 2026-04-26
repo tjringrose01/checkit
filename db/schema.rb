@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_04_25_020000) do
+ActiveRecord::Schema[7.1].define(version: 2026_04_26_030000) do
   create_table "checklist_item_completions", force: :cascade do |t|
     t.integer "user_id", null: false
     t.integer "checklist_item_id", null: false
@@ -57,6 +57,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_25_020000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.boolean "enabled", default: true, null: false
+    t.datetime "email_verified_at"
+    t.string "verification_code_digest"
+    t.datetime "verification_code_sent_at"
+    t.integer "verification_attempts", default: 0, null: false
     t.index ["email"], name: "users_email_key", unique: true
     t.index ["user_id"], name: "users_user_id_key", unique: true
   end

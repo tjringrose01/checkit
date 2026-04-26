@@ -2,6 +2,10 @@ Rails.application.routes.draw do
   get "/up", to: "health#show"
 
   resource :session, only: [ :new, :create, :destroy ]
+  resource :registration, only: [ :new, :create ]
+  resource :email_verification, only: [ :show, :create ] do
+    patch :resend
+  end
   resource :password_change, only: [ :edit, :update ]
   resources :checklists, only: [ :show ], controller: "dashboard" do
     resource :reset, only: [ :update ], controller: "checklist_resets"

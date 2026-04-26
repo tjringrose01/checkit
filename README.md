@@ -24,9 +24,11 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
    - Checklist metadata editing and checklist item management must happen from the same checklist workspace rather than separate admin pages.
    - The admin workspace must also expose an admin-only user management area.
    - The user management area must support password resets, enable and disable actions, unlock actions, and user deletion.
+   - Admin accounts must not be disableable or deletable through the management interface.
 6. User Roles: Support at least two roles:
    - Checklist Creator / Admin: can create and manage checklists.
    - User: can view and interact with checklists.
+   - The application must support self-service registration for new `user` accounts.
 7. Shared Footer: The application must display a shared footer on all pages, including the login page.
    - The footer should include common build and runtime metadata such as application name, application version when available, immutable source revision when a version is not available, build identifier, build timestamp, and environment or branch.
    - The footer may also include copyright information.
@@ -54,6 +56,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 ### Authentication
 
 - Authentication must use `user_id` and password for login.
+- The login page must provide a self-service registration option for unauthenticated users.
 - The system must store users in a `users` table.
 - The `users` table must include at least:
   - `id`
@@ -75,6 +78,58 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - The login form must authenticate with `user_id` and password, not email.
 - `last_login_at` must be recorded after each successful login.
 - The application must support a forced password change flow for users flagged with `must_change_password`.
+- Self-service registration must create accounts only for the `user` role.
+- Self-service registrants must never be able to assign themselves the `admin` role.
+- Unverified self-service accounts must not be able to authenticate successfully.
+
+### Self-Service Registration
+
+- The application must support self-service registration from the login page.
+- Registration must be available to unauthenticated users.
+- Registration must collect at least:
+  - `user_id`
+  - `email`
+  - password
+  - password confirmation
+- Registration must enforce the same server-side validation rules used for user creation and updates.
+- Registration must normalize `user_id` and `email` before uniqueness checks and persistence.
+- Registration must not be considered complete until the email address has been verified.
+- The system must send a verification code to the submitted email address through Mailgun.
+- The application must prompt the user to enter the verification code after registration submission.
+- Verification must happen server-side.
+- Verification codes must be securely generated.
+- Verification codes should be short enough for manual entry.
+  - recommended initial implementation: 6 digits
+- Verification codes must expire after a defined time window.
+  - recommended initial implementation: 15 minutes
+- Verification codes must be single-use.
+- The application must support resending verification codes for pending registrations.
+- Resend operations must be rate-limited.
+- Verification attempts must be rate-limited.
+- Invalid, expired, or already-used verification codes must return generic failure messages.
+- If an unverified registration already exists for the submitted identity, the application should update the pending verification flow rather than create duplicate records.
+- The application should automatically sign the user in after successful verification, unless a later requirement changes that behavior.
+- Pending or stale unverified registrations must be purgeable after a documented retention period.
+  - recommended initial implementation: 24 to 72 hours
+- The application should record:
+  - registration creation time
+  - verification send time
+  - verification completion time
+
+#### Registration Process Flow
+
+1. An unauthenticated user opens the sign-in page.
+2. The user selects the registration option.
+3. The application collects `user_id`, `email`, password, and password confirmation.
+4. The server validates and normalizes the submitted identity data.
+5. The server creates a pending `user` account that is not yet eligible for authentication.
+6. The server generates a verification code and sends it to the submitted email address through Mailgun.
+7. The user is redirected to the verification page.
+8. The user enters the verification code.
+9. The server verifies that the code matches, is unexpired, and has not already been used.
+10. The account is marked email-verified and becomes eligible for authentication.
+11. The application signs the user in and redirects the user into the normal checklist flow.
+12. If verification fails, the account remains pending until verification succeeds or the registration expires.
 
 ### Initial Deployment Bootstrap Requirements
 
@@ -132,6 +187,8 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - Outbound email must use the Mailgun API.
 - Mailgun authentication credentials must be provided through CI/CD-managed secrets or runtime environment secrets.
 - Mailgun API keys or tokens must never be committed to the repository or hardcoded in application source.
+- Self-service registration verification emails must be sent through the same server-side Mailgun integration.
+- Email verification must be required before a self-service account becomes active.
 
 ### User ID Requirements
 
@@ -151,6 +208,8 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - Authorization must be enforced server-side on every protected action.
 - Frontend route guards or conditional rendering may improve UX, but frontend checks must never replace backend authorization.
 - User administration functions such as password resets, enable and disable actions, unlock actions, and user deletion must be accessible only to authenticated `admin` users.
+- Admin accounts must not be disableable or deletable through admin user-management actions.
+- Self-service registration must create `user` accounts only.
 
 ### Checklist And Data Model
 
@@ -206,7 +265,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - CSV upload validation must reject malformed files and return actionable validation errors.
 - Bulk upload validation must apply the same server-side validation rules as manual checklist item creation.
 - The current implementation also sends an account-unlocked email when an Admin unlocks a locked user.
-- Admin user-management actions should protect against obvious lockout scenarios such as deleting or disabling the current admin account.
+- Admin user-management actions must not allow any admin account to be disabled or deleted.
 
 ### Development Seed Data
 
@@ -221,6 +280,10 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - The initial support target should be current Safari on iPhone and current Chrome on Android as of April 23, 2026.
 - The UI must allow users to:
   - sign in with `user_id` and password
+  - open a registration flow from the sign-in page
+  - submit registration details including `user_id`, `email`, password, and password confirmation
+  - enter an email verification code after registration
+  - request a new verification code when allowed by rate limits
   - complete a forced password change when required
   - view assigned or available checklists as a checklist list page
   - open a specific checklist and see only that checklist's items
@@ -398,6 +461,25 @@ Issue `MVP-01` establishes the initial Rails-style project scaffold on `dev`.
 - `APP_BUILD_NUMBER`: optional build number shown in the shared footer
 - `APP_BUILD_TIMESTAMP`: optional build timestamp shown in the shared footer
 
+#### Mailgun Runtime Setup
+
+Set Mailgun values at container runtime. Do not bake them into the image through `Dockerfile` build arguments.
+
+Recommended variables for this app:
+
+- `MAILGUN_API_KEY`
+- `MAILGUN_DOMAIN`
+- `MAILGUN_FROM_ADDRESS`
+- `MAILGUN_BASE_URL` when you need a non-default API endpoint
+
+Example runtime values for the domain shown in current Mailgun examples:
+
+- `MAILGUN_DOMAIN=mg.tjrcade.com`
+- `MAILGUN_FROM_ADDRESS=Mailgun Sandbox <postmaster@mg.tjrcade.com>`
+- `MAILGUN_BASE_URL=https://api.mailgun.net`
+
+If you run the published image directly, pass the secrets at `docker run` time with `-e ...` flags or a runtime env file. Never commit that env file to the repository.
+
 ### Default Development Checklist Data
 
 - `db:seed` includes a default `SPL-Shakedown Checklist` only when:
@@ -488,6 +570,16 @@ Create these Jenkins pipeline environment variables:
   - Optional release version such as `v0.3.0`
   - If set, Jenkins also tags and pushes `${DOCKER_IMAGE_REPOSITORY}:${APP_VERSION}`
   - If not set, the image still includes immutable Git SHA metadata and pushes the Git SHA tag
+- `MAILGUN_DOMAIN`
+  - Mailgun sending domain
+  - Example: `mg.tjrcade.com`
+- `MAILGUN_FROM_ADDRESS`
+  - Sender address presented by the application
+  - Example: `Mailgun Sandbox <postmaster@mg.tjrcade.com>`
+- `MAILGUN_BASE_URL`
+  - Optional Mailgun API base URL
+  - Default: `https://api.mailgun.net`
+  - Use `https://api.eu.mailgun.net` for EU-region Mailgun domains
 
 #### Create The Jenkins Secret
 
@@ -505,6 +597,32 @@ For this repository, the credential should authenticate to the public Docker Hub
 
 - `tjringrose01/checkit`
 
+#### Create The Mailgun Jenkins Secret
+
+1. In Jenkins, open `Manage Jenkins` > `Credentials`.
+2. Choose the credential store and domain used by the pipeline or deployment job.
+3. Click `Add Credentials`.
+4. Set `Kind` to `Secret text`.
+5. Paste the Mailgun private API key as the secret value.
+6. Set `ID` to a stable credential name.
+   Example: `mailgun_api_key`
+7. Save the credential.
+
+Recommended Jenkins credential and variable mapping:
+
+- Jenkins credential:
+  - `mailgun_api_key` as `Secret text`
+- Jenkins environment variables:
+  - `MAILGUN_DOMAIN=mg.tjrcade.com`
+  - `MAILGUN_FROM_ADDRESS=Mailgun Sandbox <postmaster@mg.tjrcade.com>`
+  - `MAILGUN_BASE_URL=https://api.mailgun.net`
+
+At deploy or runtime injection time, map the Jenkins credential value to:
+
+- `MAILGUN_API_KEY`
+
+Do not place the Mailgun API key directly in the `Jenkinsfile`.
+
 #### Create The Jenkins Job
 
 1. Create a `Pipeline` job or a multibranch pipeline pointed at this repository.
@@ -518,6 +636,9 @@ For this repository, the credential should authenticate to the public Docker Hub
    - `BRANCH_TAG=test` for the test deployment job
    - `BRANCH_TAG=prod` for the production deployment job
    - `APP_VERSION=v0.3.0` only for intentional release builds that should publish a semantic version tag
+   - `MAILGUN_DOMAIN=mg.tjrcade.com`
+   - `MAILGUN_FROM_ADDRESS=Mailgun Sandbox <postmaster@mg.tjrcade.com>`
+   - `MAILGUN_BASE_URL=https://api.mailgun.net`
 4. Run the pipeline.
 
 If you create separate Jenkins jobs for each environment, set `BRANCH_TAG` per job:

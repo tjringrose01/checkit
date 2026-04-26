@@ -247,7 +247,7 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
     assert @user.reload.enabled?
   end
 
-  test "admin cannot disable their own account" do
+  test "admin accounts cannot be disabled" do
     sign_in_as(@admin)
 
     patch disable_admin_user_path(@admin)
@@ -267,7 +267,7 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
     assert_nil User.find_by(id: @user.id)
   end
 
-  test "admin cannot delete their own account" do
+  test "admin accounts cannot be deleted" do
     sign_in_as(@admin)
 
     assert_no_difference -> { User.count } do
@@ -276,6 +276,16 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to admin_user_path(@admin)
     assert_not_nil User.find_by(id: @admin.id)
+  end
+
+  test "admin user page does not show disable or delete actions for admin accounts" do
+    sign_in_as(@admin)
+
+    get admin_user_path(@admin)
+
+    assert_response :success
+    assert_no_match "Disable User", response.body
+    assert_no_match "Delete User", response.body
   end
 
   private

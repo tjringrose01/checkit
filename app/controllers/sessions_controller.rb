@@ -12,6 +12,12 @@ class SessionsController < ApplicationController
   def create
     user = User.find_by(user_id: normalized_user_id)
 
+    if user&.verification_pending? && user.authenticate(params[:password].to_s)
+      session[:pending_verification_user_id] = user.id
+      redirect_to email_verification_path, notice: "Enter the verification code sent to your email."
+      return
+    end
+
     if user && !user.enabled_for_authentication?
       redirect_to new_session_path, alert: "Invalid credentials or account unavailable."
       return
