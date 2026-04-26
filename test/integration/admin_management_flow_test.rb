@@ -235,6 +235,17 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
     assert_nil @user.locked_at
   end
 
+  test "admin can assign a new role to a non-admin user" do
+    sign_in_as(@admin)
+
+    patch update_role_admin_user_path(@user), params: {
+      user: { role: "admin" }
+    }
+
+    assert_redirected_to admin_user_path(@user)
+    assert_equal "admin", @user.reload.role
+  end
+
   test "admin can disable and enable a user" do
     sign_in_as(@admin)
 
@@ -254,6 +265,17 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to admin_user_path(@admin)
     assert @admin.reload.enabled?
+  end
+
+  test "admin account roles cannot be changed" do
+    sign_in_as(@admin)
+
+    patch update_role_admin_user_path(@admin), params: {
+      user: { role: "user" }
+    }
+
+    assert_redirected_to admin_user_path(@admin)
+    assert_equal "admin", @admin.reload.role
   end
 
   test "admin can delete another user" do
@@ -286,6 +308,8 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_no_match "Disable User", response.body
     assert_no_match "Delete User", response.body
+    assert_no_match "Update Role", response.body
+    assert_match "cannot be reassigned", response.body
   end
 
   private

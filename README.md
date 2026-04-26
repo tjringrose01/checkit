@@ -23,8 +23,9 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
    - Admin users must open a specific checklist before managing that checklist's items.
    - Checklist metadata editing and checklist item management must happen from the same checklist workspace rather than separate admin pages.
    - The admin workspace must also expose an admin-only user management area.
-   - The user management area must support password resets, enable and disable actions, unlock actions, and user deletion.
+   - The user management area must support role assignment, password resets, enable and disable actions, unlock actions, and user deletion.
    - Admin accounts must not be disableable or deletable through the management interface.
+   - Admin accounts must not have their role reassigned through the management interface.
 6. User Roles: Support at least two roles:
    - Checklist Creator / Admin: can create and manage checklists.
    - User: can view and interact with checklists.
@@ -209,6 +210,8 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - Frontend route guards or conditional rendering may improve UX, but frontend checks must never replace backend authorization.
 - User administration functions such as password resets, enable and disable actions, unlock actions, and user deletion must be accessible only to authenticated `admin` users.
 - Admin accounts must not be disableable or deletable through admin user-management actions.
+- Role assignment must be accessible only to authenticated `admin` users.
+- Self-service registrants must not be able to assign or elevate their own role.
 - Self-service registration must create `user` accounts only.
 
 ### Checklist And Data Model
@@ -256,6 +259,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - edit checklist items
   - delete checklist items
   - upload checklist items in bulk
+  - assign roles to non-admin users
   - reset user passwords
   - enable users
   - disable users
@@ -265,7 +269,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - CSV upload validation must reject malformed files and return actionable validation errors.
 - Bulk upload validation must apply the same server-side validation rules as manual checklist item creation.
 - The current implementation also sends an account-unlocked email when an Admin unlocks a locked user.
-- Admin user-management actions must not allow any admin account to be disabled or deleted.
+- Admin user-management actions must not allow any admin account to be disabled, deleted, or demoted away from the `admin` role.
 
 ### Development Seed Data
 
@@ -293,6 +297,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - see desired completion time, actual completion time, and deviation status for checklist items where applicable
 - The admin UI must allow secure checklist and user-management actions appropriate to the `admin` role.
 - The admin UI must provide an admin-only user management page for user access and password administration.
+- The admin UI must provide role assignment controls for non-admin users.
 - Admin checklist forms must use browser-compatible AM/PM time input formatting so checklist start times render and submit correctly.
 - Checklist time displays must use browser-local rendering for start, scheduled, and actual completion times.
 - Unless otherwise specified, checklist time displays must render as `MM/DD/YY hh:mm AM/PM TZ` in the browser timezone.

@@ -1,6 +1,6 @@
 module Admin
   class UsersController < BaseController
-    before_action :set_user, only: %i[show enable disable unlock reset_password destroy]
+    before_action :set_user, only: %i[show enable disable unlock reset_password update_role destroy]
 
     def index
       @users = User.order(:role, :user_id)
@@ -43,6 +43,16 @@ module Admin
       end
     end
 
+    def update_role
+      return redirect_to admin_user_path(@user), alert: "Admin account roles cannot be changed." if @user.admin?
+
+      if @user.update(role_params)
+        redirect_to admin_user_path(@user), notice: "User role updated."
+      else
+        redirect_to admin_user_path(@user), alert: @user.errors.full_messages.to_sentence
+      end
+    end
+
     def destroy
       return redirect_to admin_user_path(@user), alert: "Admin accounts cannot be deleted." if @user.admin?
 
@@ -66,6 +76,10 @@ module Admin
         failed_login_attempts: 0,
         locked_at: nil
       )
+    end
+
+    def role_params
+      params.require(:user).permit(:role)
     end
 
   end

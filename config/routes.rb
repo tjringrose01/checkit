@@ -25,6 +25,7 @@ Rails.application.routes.draw do
         patch :disable
         patch :unlock
         patch :reset_password
+        patch :update_role
       end
     end
   end
