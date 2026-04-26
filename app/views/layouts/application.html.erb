@@ -7,53 +7,264 @@
     <link rel="icon" href="/favicon.ico" sizes="any">
     <style>
       :root {
-        color-scheme: light;
-        --bg: #f4f0e8;
-        --surface: #fffaf1;
-        --surface-strong: #f0e6d6;
-        --text: #1f1a17;
-        --muted: #665e58;
-        --line: #d8c9b3;
-        --accent: #185c52;
-        --accent-strong: #103f39;
+        --primary: #4a8feb;
+        --primary-light: #6ba5f2;
+        --secondary: #6ed5b7;
+        --secondary-light: #8ee1c9;
+        --accent: #f887b8;
+        --dark: #2a3b4c;
+        --text: #3a4a5c;
+        --text-light: #778899;
+        --light: #f5f8ff;
+        --shadow: rgba(42, 59, 76, 0.1);
+        --glass: rgba(255, 255, 255, 0.9);
+        --glass-dark: rgba(42, 59, 76, 0.03);
+        --line: rgba(74, 143, 235, 0.12);
+      }
+
+      @font-face {
+        font-family: "Inter";
+        font-style: normal;
+        font-weight: 400;
+        src: url("https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Inter";
+        font-style: normal;
+        font-weight: 600;
+        src: url("https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGKYAZ9hiA.woff2") format("woff2");
+      }
+
+      @font-face {
+        font-family: "Inter";
+        font-style: normal;
+        font-weight: 700;
+        src: url("https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuFuYAZ9hiA.woff2") format("woff2");
       }
 
       * {
+        margin: 0;
+        padding: 0;
         box-sizing: border-box;
       }
 
       body {
-        margin: 0;
-        font-family: Georgia, "Times New Roman", serif;
-        background:
-          radial-gradient(circle at top, rgba(24, 92, 82, 0.08), transparent 28%),
-          linear-gradient(180deg, #f9f5ee 0%, var(--bg) 100%);
+        background: linear-gradient(135deg, #f5f8ff 0%, #eef5ff 100%);
         color: var(--text);
+        font-family: "Inter", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 24px;
+        overflow: hidden;
       }
 
-      main {
-        max-width: 960px;
-        margin: 0 auto;
-        padding: 24px 16px 48px;
+      a {
+        color: var(--primary);
+      }
+
+      .app-container {
+        width: 100%;
+        max-width: 1160px;
+        height: min(920px, calc(100vh - 48px));
+        background: var(--light);
+        border-radius: 24px;
+        box-shadow: 0 20px 60px var(--shadow);
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        position: relative;
+      }
+
+      .floating-bubble {
+        position: absolute;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.2));
+        filter: blur(1px);
+        animation: float 8s infinite ease-in-out;
+        z-index: 0;
+      }
+
+      .floating-bubble--one {
+        width: 120px;
+        height: 120px;
+        top: 72px;
+        left: -32px;
+      }
+
+      .floating-bubble--two {
+        width: 180px;
+        height: 180px;
+        right: -56px;
+        bottom: 120px;
+        animation-delay: 1.5s;
+      }
+
+      .nav {
+        padding: 20px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        background: var(--glass);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        position: relative;
+        z-index: 10;
+      }
+
+      .logo {
+        font-weight: 700;
+        font-size: 24px;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .logo-icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+        border-radius: 8px;
+        color: white;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 24px;
+        align-items: center;
+      }
+
+      .nav-link {
+        text-decoration: none;
+        color: var(--text-light);
+        font-weight: 600;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        position: relative;
+      }
+
+      .nav-link:hover,
+      .nav-link.active {
+        color: var(--primary);
+      }
+
+      .nav-link.active::after {
+        content: "";
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+        border-radius: 10px;
+      }
+
+      .user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .user-meta {
+        text-align: right;
+      }
+
+      .user-meta strong {
+        display: block;
+        font-size: 14px;
+        color: var(--dark);
+      }
+
+      .user-meta span {
+        font-size: 12px;
+        color: var(--text-light);
+      }
+
+      .user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6a6cff 0%, #cb52f7 100%);
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      .main {
+        padding: 30px;
+        overflow-y: auto;
+        position: relative;
+        z-index: 1;
+      }
+
+      .main::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .main::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .main::-webkit-scrollbar-thumb {
+        background: var(--primary-light);
+        border-radius: 10px;
+      }
+
+      .content-stack {
+        display: grid;
+        gap: 24px;
       }
 
       p, h1, h2, h3, ul, dl {
         margin-top: 0;
       }
 
+      h1 {
+        font-size: 30px;
+        font-weight: 700;
+        color: var(--dark);
+      }
+
+      h2 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--dark);
+      }
+
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--dark);
+      }
+
+      .flash-group {
+        display: grid;
+        gap: 12px;
+      }
+
       .flash {
-        margin-bottom: 16px;
-        padding: 12px 14px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: white;
         border: 1px solid var(--line);
-        background: var(--surface);
+        box-shadow: 0 4px 20px var(--shadow);
       }
 
       .page-header {
         display: flex;
         justify-content: space-between;
-        gap: 16px;
+        gap: 24px;
         align-items: flex-start;
-        margin-bottom: 24px;
       }
 
       .eyebrow {
@@ -61,33 +272,34 @@
         text-transform: uppercase;
         letter-spacing: 0.12em;
         font-size: 0.75rem;
-        color: var(--muted);
+        color: var(--text-light);
       }
 
       .checklists {
         display: grid;
-        gap: 18px;
+        gap: 20px;
       }
 
       .checklist-card,
       .empty-state {
-        padding: 20px;
-        border: 1px solid var(--line);
-        background: var(--surface);
-        box-shadow: 0 14px 30px rgba(31, 26, 23, 0.06);
+        padding: 24px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px var(--shadow);
+        border: 1px solid rgba(74, 143, 235, 0.06);
       }
 
       .checklist-card__header {
         display: flex;
         justify-content: space-between;
-        gap: 16px;
+        gap: 20px;
         align-items: flex-start;
-        margin-bottom: 18px;
+        margin-bottom: 20px;
       }
 
       .checklist-card__notes {
-        max-width: 320px;
-        color: var(--muted);
+        max-width: 360px;
+        color: var(--text-light);
       }
 
       .checklist-items {
@@ -95,20 +307,21 @@
         padding: 0;
         margin: 0;
         display: grid;
-        gap: 12px;
+        gap: 16px;
       }
 
       .checklist-item {
         display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 16px;
-        padding: 16px;
-        border: 1px solid var(--line);
-        background: #fff;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 20px;
+        padding: 20px;
+        border-radius: 16px;
+        border: 1px solid rgba(74, 143, 235, 0.08);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 248, 255, 0.92));
       }
 
       .checklist-item--complete {
-        background: #f1f8f5;
+        background: linear-gradient(180deg, rgba(142, 225, 201, 0.24), rgba(255, 255, 255, 0.98));
       }
 
       .checklist-item__text > :last-child {
@@ -126,20 +339,23 @@
       .checklist-item dl {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 10px;
-        margin-top: 12px;
+        gap: 14px;
+        margin-top: 16px;
         margin-bottom: 0;
       }
 
       .checklist-item dt {
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: var(--muted);
+        color: var(--text-light);
+        margin-bottom: 6px;
       }
 
       .checklist-item dd {
         margin-left: 0;
+        font-weight: 600;
+        color: var(--dark);
       }
 
       button,
@@ -154,9 +370,11 @@
       input[type="submit"] {
         appearance: none;
         -webkit-appearance: none;
-        border: 0;
-        padding: 12px 16px;
+        border: none;
+        padding: 10px 16px;
         cursor: pointer;
+        border-radius: 10px;
+        transition: all 0.2s ease;
       }
 
       input,
@@ -164,24 +382,49 @@
       select {
         width: 100%;
         padding: 12px;
-        border: 1px solid var(--line);
-        background: #fff;
+        border: 1px solid rgba(74, 143, 235, 0.16);
+        background: rgba(255, 255, 255, 0.94);
+        border-radius: 12px;
+        color: var(--dark);
+      }
+
+      input:focus,
+      textarea:focus,
+      select:focus {
+        outline: 2px solid rgba(74, 143, 235, 0.2);
+        border-color: var(--primary-light);
       }
 
       .primary-button,
       .secondary-button,
-      button {
+      button,
+      .primary-link,
+      .secondary-link {
         min-width: 148px;
+        justify-content: center;
       }
 
       .primary-button {
-        background: var(--accent);
+        background: var(--primary);
         color: white;
       }
 
+      .primary-button:hover,
+      .primary-link:hover {
+        background: var(--primary-light);
+        transform: translateY(-2px);
+      }
+
       .secondary-button {
-        background: var(--surface-strong);
-        color: var(--text);
+        background: transparent;
+        border: 1px solid var(--primary);
+        color: var(--primary);
+      }
+
+      .secondary-button:hover,
+      .secondary-link:hover {
+        background: rgba(74, 143, 235, 0.1);
+        transform: translateY(-2px);
       }
 
       form.button_to {
@@ -193,31 +436,35 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        min-width: 148px;
-        padding: 12px 16px;
+        padding: 10px 16px;
         text-decoration: none;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: all 0.2s ease;
       }
 
       .primary-link {
-        background: var(--accent);
+        background: var(--primary);
         color: white;
       }
 
       .secondary-link {
-        background: var(--surface-strong);
-        color: var(--text);
+        background: transparent;
+        border: 1px solid var(--primary);
+        color: var(--primary);
       }
 
       .admin-actions {
         display: flex;
-        gap: 10px;
+        gap: 12px;
         flex-wrap: wrap;
+        align-items: center;
       }
 
       .admin-panel {
         display: grid;
         gap: 16px;
-        margin-top: 16px;
+        margin-top: 20px;
       }
 
       .form-grid {
@@ -235,11 +482,33 @@
         gap: 10px;
       }
 
+      section > p,
+      article p,
+      label,
+      .empty-state p {
+        color: var(--text-light);
+        line-height: 1.55;
+      }
+
+      section form {
+        display: grid;
+        gap: 16px;
+      }
+
+      section form > div {
+        display: grid;
+        gap: 8px;
+      }
+
+      .empty-state {
+        text-align: center;
+      }
+
       .app-footer {
-        margin-top: 32px;
+        margin-top: 8px;
         padding-top: 16px;
-        border-top: 1px solid var(--line);
-        color: var(--muted);
+        border-top: 1px solid rgba(74, 143, 235, 0.12);
+        color: var(--text-light);
         font-size: 0.9rem;
       }
 
@@ -247,7 +516,34 @@
         margin-bottom: 8px;
       }
 
+      @keyframes float {
+        0%, 100% {
+          transform: translateY(0) scale(1);
+        }
+        50% {
+          transform: translateY(-15px) scale(1.05);
+        }
+      }
+
       @media (max-width: 700px) {
+        body {
+          padding: 0;
+        }
+
+        .app-container {
+          height: 100vh;
+          max-width: 100%;
+          border-radius: 0;
+        }
+
+        .nav {
+          padding: 16px;
+        }
+
+        .main {
+          padding: 20px;
+        }
+
         .page-header,
         .checklist-card__header,
         .checklist-item {
@@ -265,6 +561,14 @@
         .secondary-link,
         button {
           width: 100%;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .user-meta {
+          display: none;
         }
       }
     </style>
@@ -440,17 +744,70 @@
     </script>
   </head>
   <body>
-    <main>
-      <% flash.each do |type, message| %>
-        <p class="flash"><%= "#{type.to_s.humanize}: #{message}" %></p>
-      <% end %>
+    <div class="app-container">
+      <div class="floating-bubble floating-bubble--one"></div>
+      <div class="floating-bubble floating-bubble--two"></div>
 
-      <%= yield %>
+      <nav class="nav">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M16 4C16 2.89543 15.1046 2 14 2H10C8.89543 2 8 2.89543 8 4V6H16V4Z" fill="currentColor"/>
+              <path d="M18.5 6H5.5C4.11929 6 3 7.11929 3 8.5V19C3 20.6569 4.34315 22 6 22H18C19.6569 22 21 20.6569 21 19V8.5C21 7.11929 19.8807 6 18.5 6Z" fill="currentColor"/>
+              <path d="M10.5 11.5C10.5 10.6716 11.1716 10 12 10C12.8284 10 13.5 10.6716 13.5 11.5V13.5H15.5C16.3284 13.5 17 14.1716 17 15C17 15.8284 16.3284 16.5 15.5 16.5H13.5V18.5C13.5 19.3284 12.8284 20 12 20C11.1716 20 10.5 19.3284 10.5 18.5V16.5H8.5C7.67157 16.5 7 15.8284 7 15C7 14.1716 7.67157 13.5 8.5 13.5H10.5V11.5Z" fill="white"/>
+            </svg>
+          </div>
+          <span><%= application_name %></span>
+        </div>
 
-      <footer class="app-footer">
-        <p><strong><%= application_name %></strong></p>
-        <p><%= footer_metadata.join(" | ") %></p>
-      </footer>
-    </main>
+        <div class="nav-links">
+          <%= link_to "Dashboard", authenticated? ? root_path : new_session_path, class: "nav-link active" %>
+          <% if authenticated? && current_user.admin? %>
+            <%= link_to "Admin", admin_root_path, class: "nav-link" %>
+            <%= link_to "Users", admin_users_path, class: "nav-link" %>
+          <% elsif authenticated? %>
+            <%= link_to "Checklists", root_path, class: "nav-link" %>
+          <% else %>
+            <%= link_to "Sign In", new_session_path, class: "nav-link" %>
+            <%= link_to "Register", new_registration_path, class: "nav-link" %>
+          <% end %>
+        </div>
+
+        <div class="user">
+          <% if authenticated? %>
+            <div class="user-meta">
+              <strong><%= current_user.user_id %></strong>
+              <span><%= current_user.role.titleize %></span>
+            </div>
+            <div class="user-avatar"><%= current_user.user_id.first(2).upcase %></div>
+          <% else %>
+            <div class="user-meta">
+              <strong>Guest</strong>
+              <span>Public Access</span>
+            </div>
+            <div class="user-avatar">GU</div>
+          <% end %>
+        </div>
+      </nav>
+
+      <main class="main">
+        <div class="content-stack">
+          <% if flash.any? %>
+            <div class="flash-group">
+              <% flash.each do |type, message| %>
+                <p class="flash"><%= "#{type.to_s.humanize}: #{message}" %></p>
+              <% end %>
+            </div>
+          <% end %>
+
+          <%= yield %>
+
+          <footer class="app-footer">
+            <p><strong><%= application_name %></strong></p>
+            <p><%= footer_metadata.join(" | ") %></p>
+          </footer>
+        </div>
+      </main>
+    </div>
   </body>
 </html>
