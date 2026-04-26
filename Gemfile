@@ -1,12 +1,12 @@
 source "https://rubygems.org"
 
-ruby "3.3.1"
+ruby "3.3.10"
 
 gem "bootsnap", require: false
 gem "bcrypt", "~> 3.1.7"
 gem "csv"
 gem "puma", "~> 6.4"
-gem "rails", "8.1.2"
+gem "rails", "8.1.3"
 gem "sqlite3", ">= 2.1"
 gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
 
@@ -17,5 +17,5 @@ group :development, :test do
 end
 
 group :development do
-  gem "web-console"
+  gem "web-console", "4.3.0"
 end

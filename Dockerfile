@@ -1,4 +1,4 @@
-FROM ruby:3.3.1
+FROM ruby:3.3.10
 
 ARG APP_NAME=Checkit
 ARG APP_BUILD_ENVIRONMENT=dev
