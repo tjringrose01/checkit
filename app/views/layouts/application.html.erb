@@ -104,8 +104,8 @@
 
       .nav {
         padding: 20px 24px;
-        display: grid;
-        grid-template-columns: auto 1fr auto;
+        display: flex;
+        justify-content: flex-start;
         align-items: center;
         gap: 20px;
         background: var(--glass);
@@ -223,6 +223,12 @@
         align-items: center;
         justify-content: center;
         color: var(--text-light);
+        flex-shrink: 0;
+      }
+
+      .user-menu__icon svg {
+        display: block;
+        flex-shrink: 0;
       }
 
       .user-avatar {
