@@ -64,8 +64,8 @@ class AuthenticationFlowTest < ActionDispatch::IntegrationTest
     get new_session_path
 
     assert_response :success
-    assert_match(/Checkit \| Copyright \d{4} \| Environment dev \| Build dev-99 \| Built/, response.body)
-    assert_match "Environment dev", response.body
+    assert_match(/Checkit \| Copyright \d{4} \| Dev Environment \| Build dev-99 \| Built/, response.body)
+    assert_match "Dev Environment", response.body
   ensure
     ENV["APP_BUILD_ENVIRONMENT"] = previous_environment
     ENV["APP_BUILD_NUMBER"] = previous_number
@@ -96,6 +96,16 @@ class AuthenticationFlowTest < ActionDispatch::IntegrationTest
     refute_match(/Dashboard/, response.body)
     refute_match(/class="nav-link" href="\/session\/new"/, response.body)
     refute_match(/class="logo" href=/, response.body)
+  end
+
+  test "redirect to sign in from protected page does not show please sign in alert" do
+    get root_path
+
+    assert_redirected_to new_session_path
+    follow_redirect!
+
+    assert_response :success
+    refute_match "Please sign in to continue.", response.body
   end
 
   test "disabled accounts cannot sign in" do
@@ -135,5 +145,15 @@ class AuthenticationFlowTest < ActionDispatch::IntegrationTest
     assert_match(/aria-label="Open user menu"/, response.body)
     assert_match "Sign out", response.body
     refute_match "Signed in as", response.body
+  end
+
+  test "flash notices render dismiss controls" do
+    post session_path, params: { user_id: @user.user_id, password: "StrongerPass123" }
+    follow_redirect!
+
+    assert_response :success
+    assert_match(/data-dismiss-flash/, response.body)
+    assert_match(/aria-label="Dismiss message"/, response.body)
+    assert_match(/Notice: Signed in\./, response.body)
   end
 end

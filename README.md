@@ -19,7 +19,10 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
    - Displayed checklist times must render in the browser's local time rather than fixed UTC output.
    - Unless otherwise specified, displayed times must use the format `MM/DD/YY hh:mm AM/PM TZ`.
 5. Management Interface: Authorized users must have a secure web interface for uploading and managing checklist items.
+   - The admin workspace must first break out into separate administration and checklist-management sections.
    - The admin workspace must start with a list of checklists.
+   - The administration section must include user administration.
+   - The checklist-management section must focus on checklist creation, editing, item management, and imports.
    - Admin users must open a specific checklist before managing that checklist's items.
    - Checklist metadata editing and checklist item management must happen from the same checklist workspace rather than separate admin pages.
    - The admin workspace must also expose an admin-only user management area.
@@ -342,6 +345,8 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - see desired completion time, actual completion time, and deviation status for checklist items where applicable
 - The admin UI must allow secure checklist and user-management actions appropriate to the `admin` role.
 - The admin UI must provide an admin-only user management page for user access and password administration.
+- The admin landing page should separate administrative account-management actions from checklist-management actions.
+- The checklist manager page should remain focused on checklist operations rather than mixing in user-administration sections.
 - The admin UI must provide role assignment controls for non-admin users.
 - Admin checklist forms must use browser-compatible AM/PM time input formatting so checklist start times render and submit correctly.
 - Checklist time displays must use browser-local rendering for start, scheduled, and actual completion times.

@@ -4,7 +4,6 @@ module Admin
 
     def index
       @checklists = Checklist.includes(:checklist_items).order(:title)
-      @locked_users = User.where.not(locked_at: nil).order(:user_id)
     end
 
     def show

@@ -16,7 +16,7 @@ class ApplicationHelperTest < ActiveSupport::TestCase
       assert_equal [
         "Checkit",
         "Copyright #{Time.current.year}",
-        "Environment dev",
+        "Dev Environment",
         "Build dev-99"
       ], helper.footer_metadata
       assert_match "Built", helper.footer_build_timestamp

@@ -104,8 +104,8 @@
 
       .nav {
         padding: 20px 24px;
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
         align-items: center;
         gap: 20px;
         background: var(--glass);
@@ -140,7 +140,7 @@
         display: flex;
         align-items: center;
         position: relative;
-        margin-left: auto;
+        justify-self: end;
       }
 
       .user-menu-toggle {
@@ -284,11 +284,34 @@
       }
 
       .flash {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
         padding: 14px 16px;
         border-radius: 14px;
         background: white;
         border: 1px solid var(--line);
         box-shadow: 0 4px 20px var(--shadow);
+      }
+
+      .flash__content {
+        flex: 1;
+      }
+
+      .flash__dismiss {
+        min-width: auto;
+        width: auto;
+        padding: 0;
+        background: transparent;
+        color: var(--text-light);
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .flash__dismiss:hover {
+        color: var(--primary);
+        transform: none;
       }
 
       .page-header {
@@ -610,7 +633,7 @@
         .secondary-button,
         .primary-link,
         .secondary-link,
-        button {
+        button:not(.user-menu-toggle) {
           width: 100%;
         }
 
@@ -636,6 +659,13 @@
 
           document.querySelectorAll("[data-user-menu]").forEach(function(menu) {
             menu.dataset.open = "false";
+          });
+        });
+
+        document.querySelectorAll("[data-dismiss-flash]").forEach(function(button) {
+          button.addEventListener("click", function() {
+            var flash = button.closest(".flash");
+            if (flash) flash.remove();
           });
         });
 
@@ -878,7 +908,10 @@
           <% if flash.any? %>
             <div class="flash-group">
               <% flash.each do |type, message| %>
-                <p class="flash"><%= "#{type.to_s.humanize}: #{message}" %></p>
+                <div class="flash" role="status">
+                  <p class="flash__content"><%= "#{type.to_s.humanize}: #{message}" %></p>
+                  <button type="button" class="flash__dismiss" aria-label="Dismiss message" data-dismiss-flash>&times;</button>
+                </div>
               <% end %>
             </div>
           <% end %>

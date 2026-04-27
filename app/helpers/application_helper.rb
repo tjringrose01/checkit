@@ -53,6 +53,13 @@ module ApplicationHelper
           <path d="M19 12L21 10.8L19.8 8.7L17.5 9L16.2 7L14 8L12 6.8L10 8L7.8 7L6.5 9L4.2 8.7L3 10.8L5 12L3 13.2L4.2 15.3L6.5 15L7.8 17L10 16L12 17.2L14 16L16.2 17L17.5 15L19.8 15.3L21 13.2L19 12Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
         </svg>
       SVG
+      checklist_management: <<~SVG,
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 8.5A3.5 3.5 0 1 1 12 15.5A3.5 3.5 0 0 1 12 8.5Z" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M19 12L21 10.8L19.8 8.7L17.5 9L16.2 7L14 8L12 6.8L10 8L7.8 7L6.5 9L4.2 8.7L3 10.8L5 12L3 13.2L4.2 15.3L6.5 15L7.8 17L10 16L12 17.2L14 16L16.2 17L17.5 15L19.8 15.3L21 13.2L19 12Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M9 12.5L11 14.5L15.5 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      SVG
       signout: <<~SVG
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M14 7L19 12L14 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -191,7 +198,7 @@ module ApplicationHelper
     [
       application_name,
       "Copyright #{Time.current.year}",
-      "Environment #{build_environment}",
+      "#{build_environment.to_s.capitalize} Environment",
       "Build #{build_identifier}"
     ]
   end

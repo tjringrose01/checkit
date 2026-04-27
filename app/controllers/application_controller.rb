@@ -17,7 +17,7 @@ class ApplicationController < ActionController::Base
   def require_authentication
     return if authenticated?
 
-    redirect_to new_session_path, alert: "Please sign in to continue."
+    redirect_to new_session_path
   end
 
   def require_password_change

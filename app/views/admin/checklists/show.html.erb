@@ -1,12 +1,13 @@
 <section class="page-header">
   <div>
-    <p class="eyebrow">Admin Workspace</p>
+    <p class="eyebrow">Checklist Management</p>
     <h1><%= @checklist.title %></h1>
     <p>Manage checklist metadata, checklist items, and CSV imports for this checklist in one workspace.</p>
   </div>
 
   <div class="admin-actions">
-    <%= link_to "Back To Checklists", admin_root_path, class: "secondary-link" %>
+    <%= link_to "Back To Checklist Manager", admin_checklists_path, class: "secondary-link" %>
+    <%= link_to "Back To Admin Workspace", admin_root_path, class: "secondary-link" %>
     <%= link_to "Add Item", new_admin_checklist_checklist_item_path(@checklist), class: "primary-link" %>
   </div>
 </section>

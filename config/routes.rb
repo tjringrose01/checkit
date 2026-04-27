@@ -19,7 +19,7 @@ Rails.application.routes.draw do
     resource :completion, only: [ :update ], controller: "checklist_item_completions"
   end
   namespace :admin do
-    root "checklists#index"
+    root "dashboard#show"
     resources :checklists do
       resources :checklist_items, except: [ :index, :show ]
       resource :checklist_item_import, only: [ :create ]

@@ -111,16 +111,34 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
     assert_match 'value="07:00 PM"', response.body
   end
 
-  test "admin landing page lists checklists before showing items" do
+  test "admin workspace breaks out administration and checklist management" do
     @checklist.checklist_items.create!(item_text: "Close register", sort_order: 1, desired_completion_offset_minutes: 15)
+    @user.update!(failed_login_attempts: 6, locked_at: Time.current)
     sign_in_as(@admin)
 
     get admin_root_path
 
     assert_response :success
+    assert_match "User Administration", response.body
+    assert_match "Open User Administration", response.body
+    assert_match "Checklist Workspace", response.body
+    assert_match "Open Checklist Manager", response.body
     assert_match "Closing Tasks", response.body
     assert_match "Open Checklist", response.body
+    assert_match @user.user_id, response.body
     assert_no_match "Close register", response.body
+  end
+
+  test "checklist manager is focused on checklist management only" do
+    @user.update!(failed_login_attempts: 6, locked_at: Time.current)
+    sign_in_as(@admin)
+
+    get admin_checklists_path
+
+    assert_response :success
+    assert_match "Checklist Manager", response.body
+    assert_no_match "Locked Accounts", response.body
+    assert_no_match "User Access", response.body
   end
 
   test "admin checklist workspace renders AM/PM time input value for checklist start" do

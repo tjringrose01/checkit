@@ -1,13 +1,13 @@
 <section class="page-header">
   <div>
-    <p class="eyebrow">Admin Workspace</p>
+    <p class="eyebrow">Administration</p>
     <h1><%= [@user.first_name, @user.last_name].compact_blank.join(" ").presence || @user.user_id %></h1>
     <p>Manage access state, reset the password, and remove this user when appropriate.</p>
   </div>
 
   <div class="admin-actions">
     <%= link_to "Back To Users", admin_users_path, class: "secondary-link" %>
-    <%= link_to "Back To Checklists", admin_root_path, class: "secondary-link" %>
+    <%= link_to "Back To Admin Workspace", admin_root_path, class: "secondary-link" %>
   </div>
 </section>
 
