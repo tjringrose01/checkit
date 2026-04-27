@@ -3,6 +3,11 @@ Rails.application.routes.draw do
 
   resource :session, only: [ :new, :create, :destroy ]
   resource :registration, only: [ :new, :create ]
+  resource :password_reset_request, only: [ :new, :create ]
+  resource :password_reset_verification, only: [ :show, :create ] do
+    patch :resend
+  end
+  resource :password_reset, only: [ :edit, :update ]
   resource :email_verification, only: [ :show, :create ] do
     patch :resend
   end
@@ -24,6 +29,7 @@ Rails.application.routes.draw do
         patch :enable
         patch :disable
         patch :unlock
+        patch :update_profile
         patch :reset_password
         patch :update_role
       end

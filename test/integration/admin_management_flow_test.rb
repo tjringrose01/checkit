@@ -4,6 +4,8 @@ require "tempfile"
 class AdminManagementFlowTest < ActionDispatch::IntegrationTest
   setup do
     @admin = User.create!(
+      first_name: "Ada",
+      last_name: "Admin",
       user_id: "admin01",
       email: "admin01@example.com",
       role: "admin",
@@ -11,6 +13,8 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
       password_confirmation: "StrongerPass123"
     )
     @user = User.create!(
+      first_name: "Mina",
+      last_name: "Member",
       user_id: "member10",
       email: "member10@example.com",
       password: "StrongerPass123",
@@ -213,8 +217,30 @@ class AdminManagementFlowTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match "User Administration", response.body
+    assert_match "Mina Member", response.body
+    assert_match "Username: member10", response.body
     assert_match @user.user_id, response.body
     assert_match "Manage User", response.body
+  end
+
+  test "admin can update user profile details" do
+    sign_in_as(@admin)
+
+    patch update_profile_admin_user_path(@user), params: {
+      user: {
+        first_name: "Updated",
+        last_name: "Person",
+        user_id: "member11",
+        email: "member11@example.com"
+      }
+    }
+
+    assert_redirected_to admin_user_path(@user)
+    @user.reload
+    assert_equal "Updated", @user.first_name
+    assert_equal "Person", @user.last_name
+    assert_equal "member11", @user.user_id
+    assert_equal "member11@example.com", @user.email
   end
 
   test "admin can reset a user password and force a password change" do

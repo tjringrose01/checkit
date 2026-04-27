@@ -138,4 +138,49 @@ class UserTest < ActiveSupport::TestCase
     assert user.reload.email_verified?
     assert_nil user.verification_code_digest
   end
+
+  test "password reset is only eligible for verified non-admin users" do
+    verified_user = User.create!(
+      user_id: "member09",
+      email: "member09@example.com",
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123"
+    )
+    admin_user = User.create!(
+      user_id: "adminmember",
+      email: "adminmember@example.com",
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123",
+      role: "admin"
+    )
+    pending_user = User.new(
+      user_id: "pending09",
+      email: "pending09@example.com",
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123"
+    )
+    pending_user.skip_initial_email_verification_default = true
+    pending_user.save!
+
+    assert verified_user.password_reset_eligible?
+    assert_not admin_user.password_reset_eligible?
+    assert_not pending_user.password_reset_eligible?
+  end
+
+  test "password reset code can be verified and cleared" do
+    user = User.create!(
+      user_id: "member10",
+      email: "member10@example.com",
+      password: "StrongerPass123",
+      password_confirmation: "StrongerPass123"
+    )
+
+    code = user.prepare_password_reset!(code: "654321")
+
+    assert_equal "654321", code
+    assert user.password_reset_pending?
+    assert user.verify_password_reset_code!("654321")
+    assert_nil user.reload.password_reset_code_digest
+    assert_equal 0, user.password_reset_attempts
+  end
 end

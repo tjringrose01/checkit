@@ -1,6 +1,6 @@
 module Admin
   class UsersController < BaseController
-    before_action :set_user, only: %i[show enable disable unlock reset_password update_role destroy]
+    before_action :set_user, only: %i[show enable disable unlock update_profile reset_password update_role destroy]
 
     def index
       @users = User.order(:role, :user_id)
@@ -29,6 +29,14 @@ module Admin
       UserMailer.account_unlocked(@user).deliver_now
 
       redirect_to admin_user_path(@user), notice: "User unlocked."
+    end
+
+    def update_profile
+      if @user.update(profile_params)
+        redirect_to admin_user_path(@user), notice: "User profile updated."
+      else
+        redirect_to admin_user_path(@user), alert: @user.errors.full_messages.to_sentence
+      end
     end
 
     def reset_password
@@ -68,6 +76,10 @@ module Admin
 
     def reset_password_params
       params.require(:user).permit(:password, :password_confirmation)
+    end
+
+    def profile_params
+      params.require(:user).permit(:first_name, :last_name, :user_id, :email)
     end
 
     def reset_password_attributes

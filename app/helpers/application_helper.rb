@@ -29,6 +29,42 @@ module ApplicationHelper
     )
   end
 
+  def login_screen?
+    controller_name == "sessions" && action_name == "new"
+  end
+
+  def menu_icon(name)
+    icons = {
+      menu: <<~SVG,
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 7H20" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M4 12H20" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="M4 17H20" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+        </svg>
+      SVG
+      home: <<~SVG,
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M4 11.5L12 5L20 11.5V19C20 19.5523 19.5523 20 19 20H15V14H9V20H5C4.44772 20 4 19.5523 4 19V11.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+      SVG
+      admin: <<~SVG,
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 8.5A3.5 3.5 0 1 1 12 15.5A3.5 3.5 0 0 1 12 8.5Z" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M19 12L21 10.8L19.8 8.7L17.5 9L16.2 7L14 8L12 6.8L10 8L7.8 7L6.5 9L4.2 8.7L3 10.8L5 12L3 13.2L4.2 15.3L6.5 15L7.8 17L10 16L12 17.2L14 16L16.2 17L17.5 15L19.8 15.3L21 13.2L19 12Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+        </svg>
+      SVG
+      signout: <<~SVG
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M14 7L19 12L14 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M19 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M11 5H6C5.44772 5 5 5.44772 5 6V18C5 18.5523 5.44772 19 6 19H11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+      SVG
+    }
+
+    icons.fetch(name).html_safe
+  end
+
   def browser_local_time(value)
     return "Not set" if value.blank?
 

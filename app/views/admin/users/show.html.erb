@@ -1,7 +1,7 @@
 <section class="page-header">
   <div>
     <p class="eyebrow">Admin Workspace</p>
-    <h1><%= @user.user_id %></h1>
+    <h1><%= [@user.first_name, @user.last_name].compact_blank.join(" ").presence || @user.user_id %></h1>
     <p>Manage access state, reset the password, and remove this user when appropriate.</p>
   </div>
 
@@ -20,11 +20,49 @@
       </div>
     </header>
 
+    <p>First name: <strong><%= @user.first_name.presence || "Not set" %></strong></p>
+    <p>Last name: <strong><%= @user.last_name.presence || "Not set" %></strong></p>
+    <p>Username: <strong><%= @user.user_id %></strong></p>
     <p>Role: <strong><%= @user.role %></strong></p>
     <p>Status: <strong><%= @user.enabled? ? "Enabled" : "Disabled" %></strong></p>
     <p>Locked: <strong><%= @user.locked? ? "Yes" : "No" %></strong></p>
     <p>Failed login attempts: <strong><%= @user.failed_login_attempts %></strong></p>
     <p>Must change password: <strong><%= @user.must_change_password? ? "Yes" : "No" %></strong></p>
+  </article>
+
+  <article class="checklist-card">
+    <header class="checklist-card__header">
+      <div>
+        <p class="eyebrow">Profile</p>
+        <h2>Edit User Details</h2>
+      </div>
+    </header>
+
+    <%= form_with url: update_profile_admin_user_path(@user), method: :patch do |form| %>
+      <div>
+        <%= form.label :first_name, "First name" %>
+        <%= form.text_field :first_name, name: "user[first_name]", value: @user.first_name, autocomplete: "given-name" %>
+      </div>
+
+      <div>
+        <%= form.label :last_name, "Last name" %>
+        <%= form.text_field :last_name, name: "user[last_name]", value: @user.last_name, autocomplete: "family-name" %>
+      </div>
+
+      <div>
+        <%= form.label :user_id, "Username" %>
+        <%= form.text_field :user_id, name: "user[user_id]", value: @user.user_id, required: true, autocomplete: "username" %>
+      </div>
+
+      <div>
+        <%= form.label :email %>
+        <%= form.email_field :email, name: "user[email]", value: @user.email, required: true, autocomplete: "email" %>
+      </div>
+
+      <div style="margin-top: 16px;">
+        <%= form.submit "Update Profile", class: "primary-button" %>
+      </div>
+    <% end %>
   </article>
 
   <article class="checklist-card">

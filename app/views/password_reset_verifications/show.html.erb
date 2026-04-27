@@ -1,0 +1,22 @@
+<section>
+  <h1>Verify Reset Code</h1>
+  <p>Enter the verification code sent to <strong><%= @user.email %></strong>.</p>
+
+  <%= form_with scope: :password_reset_verification, url: password_reset_verification_path, method: :post do |form| %>
+    <div>
+      <%= form.label :code, "Verification code" %>
+      <%= form.text_field :code,
+                          name: "password_reset_verification[code]",
+                          required: true,
+                          inputmode: "numeric",
+                          autocomplete: "one-time-code",
+                          maxlength: User::VERIFICATION_CODE_LENGTH %>
+    </div>
+
+    <%= form.submit "Verify code", class: "primary-button" %>
+  <% end %>
+
+  <div class="admin-actions" style="margin-top: 16px;">
+    <%= button_to "Resend Code", resend_password_reset_verification_path, method: :patch, class: "secondary-button" %>
+  </div>
+</section>

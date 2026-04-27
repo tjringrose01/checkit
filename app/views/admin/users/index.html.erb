@@ -36,7 +36,8 @@
       <% @users.each do |user| %>
         <li class="checklist-item">
           <div class="checklist-item__content">
-            <h3><%= user.user_id %></h3>
+            <h3><%= [user.first_name, user.last_name].compact_blank.join(" ").presence || user.user_id %></h3>
+            <p>Username: <%= user.user_id %></p>
             <p><%= user.email %></p>
             <p>Role: <%= user.role %></p>
             <p>Status: <%= user.enabled? ? "Enabled" : "Disabled" %></p>

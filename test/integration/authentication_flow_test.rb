@@ -81,6 +81,23 @@ class AuthenticationFlowTest < ActionDispatch::IntegrationTest
     assert_match(/class="primary-button"/, response.body)
   end
 
+  test "sign in page uses username label" do
+    get new_session_path
+
+    assert_response :success
+    assert_match ">Username<", response.body
+  end
+
+  test "sign in page hides authenticated navigation chrome" do
+    get new_session_path
+
+    assert_response :success
+    refute_match(/Open user menu/, response.body)
+    refute_match(/Dashboard/, response.body)
+    refute_match(/class="nav-link" href="\/session\/new"/, response.body)
+    refute_match(/class="logo" href=/, response.body)
+  end
+
   test "disabled accounts cannot sign in" do
     @user.update!(enabled: false)
 

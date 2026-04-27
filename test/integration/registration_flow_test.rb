@@ -12,6 +12,8 @@ class RegistrationFlowTest < ActionDispatch::IntegrationTest
     assert_difference -> { User.count }, 1 do
       post registration_path, params: {
         user: {
+          first_name: "New",
+          last_name: "Member",
           user_id: "newmember",
           email: "newmember@example.com",
           password: "StrongerPass123",
@@ -21,6 +23,8 @@ class RegistrationFlowTest < ActionDispatch::IntegrationTest
     end
 
     user = User.find_by!(user_id: "newmember")
+    assert_equal "New", user.first_name
+    assert_equal "Member", user.last_name
     assert_redirected_to email_verification_path
     assert_not user.email_verified?
     assert_equal [ user.email ], ActionMailer::Base.deliveries.last.to
@@ -90,5 +94,17 @@ class RegistrationFlowTest < ActionDispatch::IntegrationTest
     end
 
     assert_redirected_to email_verification_path
+  end
+
+  test "registration page uses username label and stacked name fields" do
+    get new_registration_path
+
+    assert_response :success
+    assert_match "First name", response.body
+    assert_match "Last name", response.body
+    assert_match ">Username<", response.body
+    refute_match(/class="form-grid"/, response.body)
+    refute_match(/class="logo" href=/, response.body)
+    refute_match(/Dashboard/, response.body)
   end
 end

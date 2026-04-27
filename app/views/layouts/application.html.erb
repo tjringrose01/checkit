@@ -136,48 +136,22 @@
         color: white;
       }
 
-      .nav-links {
-        display: flex;
-        gap: 24px;
-        align-items: center;
-      }
-
-      .nav-link {
-        text-decoration: none;
-        color: var(--text-light);
-        font-weight: 600;
-        font-size: 14px;
-        transition: all 0.3s ease;
-        position: relative;
-      }
-
-      .nav-link:hover,
-      .nav-link.active {
-        color: var(--primary);
-      }
-
-      .nav-link.active::after {
-        content: "";
-        position: absolute;
-        bottom: -8px;
-        left: 0;
-        width: 100%;
-        height: 3px;
-        background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
-        border-radius: 10px;
-      }
-
       .user {
         display: flex;
         align-items: center;
         position: relative;
+        margin-left: auto;
       }
 
       .user-menu-toggle {
         border: 0;
         background: transparent;
         cursor: pointer;
-        padding: 0;
+        padding: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--dark);
       }
 
       .user-menu {
@@ -220,6 +194,7 @@
         width: 100%;
         display: flex;
         align-items: center;
+        gap: 10px;
         padding: 10px;
         font-size: 14px;
         font-weight: 600;
@@ -238,17 +213,17 @@
         color: var(--primary);
       }
 
-      .user-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #6a6cff 0%, #cb52f7 100%);
-        color: white;
-        display: flex;
-        justify-content: center;
+      .user-menu__icon {
+        display: inline-flex;
         align-items: center;
-        font-weight: 600;
-        font-size: 14px;
+        justify-content: center;
+        color: var(--text-light);
+      }
+
+      .user-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .main {
@@ -351,6 +326,26 @@
       .checklist-card__notes {
         max-width: 360px;
         color: var(--text-light);
+      }
+
+      .auth-panel {
+        width: 100%;
+        max-width: 380px;
+        justify-self: center;
+        padding: 24px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px var(--shadow);
+        border: 1px solid rgba(74, 143, 235, 0.06);
+      }
+
+      .auth-panel form {
+        display: grid;
+        gap: 16px;
+      }
+
+      .auth-panel--wide {
+        max-width: 640px;
       }
 
       .checklist-items {
@@ -614,13 +609,6 @@
           width: 100%;
         }
 
-        .nav-links {
-          display: none;
-        }
-
-        .user-meta {
-          display: none;
-        }
       }
     </style>
     <script>
@@ -821,7 +809,7 @@
       <div class="floating-bubble floating-bubble--two"></div>
 
       <nav class="nav">
-        <%= link_to(authenticated? ? root_path : new_session_path, class: "logo") do %>
+        <% logo_markup = capture do %>
           <div class="logo-icon">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M16 4C16 2.89543 15.1046 2 14 2H10C8.89543 2 8 2.89543 8 4V6H16V4Z" fill="currentColor"/>
@@ -832,15 +820,13 @@
           <span><%= application_name %></span>
         <% end %>
 
-        <div class="nav-links">
-          <%= link_to "Dashboard", authenticated? ? root_path : new_session_path, class: "nav-link active" %>
-          <% if authenticated? %>
-            <%= link_to "Checklists", root_path, class: "nav-link" %>
-          <% else %>
-            <%= link_to "Sign In", new_session_path, class: "nav-link" %>
-            <%= link_to "Register", new_registration_path, class: "nav-link" %>
+        <% if authenticated? %>
+          <%= link_to root_path, class: "logo" do %>
+            <%= logo_markup %>
           <% end %>
-        </div>
+        <% else %>
+          <div class="logo"><%= logo_markup %></div>
+        <% end %>
 
         <div class="user">
           <% if authenticated? %>
@@ -849,7 +835,7 @@
                       class="user-menu-toggle"
                       data-user-menu-toggle="user-menu"
                       aria-label="Open user menu">
-                <div class="user-avatar"><%= current_user.user_id.first(2).upcase %></div>
+                <div class="user-avatar"><%= menu_icon(:menu) %></div>
               </button>
 
               <div id="user-menu" class="user-menu" data-user-menu data-open="false">
@@ -858,18 +844,26 @@
                   <span><%= current_user.role.titleize %></span>
                 </div>
 
-                <% if current_user.admin? %>
-                  <%= link_to "Open Admin Workspace", admin_root_path, class: "user-menu__item" %>
+                <%= link_to root_path, class: "user-menu__item" do %>
+                  <span class="user-menu__icon"><%= menu_icon(:home) %></span>
+                  <span>Home</span>
                 <% end %>
 
-                <%= button_to "Sign out",
-                              session_path,
+                <% if current_user.admin? %>
+                  <%= link_to admin_root_path, class: "user-menu__item" do %>
+                    <span class="user-menu__icon"><%= menu_icon(:admin) %></span>
+                    <span>Admin Workspace</span>
+                  <% end %>
+                <% end %>
+
+                <%= button_to session_path,
                               method: :delete,
-                              class: "user-menu__button" %>
+                              class: "user-menu__button" do %>
+                  <span class="user-menu__icon"><%= menu_icon(:signout) %></span>
+                  <span>Sign out</span>
+                <% end %>
               </div>
             </div>
-          <% else %>
-            <div class="user-avatar">GU</div>
           <% end %>
         </div>
       </nav>

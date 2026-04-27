@@ -35,8 +35,12 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
    - The built timestamp should render in the browser's local timezone.
 8. Shared Header: The application must display a shared header on authenticated pages.
    - Clicking the application name or logo in the header should return the user to the home screen.
-   - User actions such as signing out and opening the admin workspace should be available from a dropdown opened from the upper-right user bubble.
+   - User actions such as signing out and opening the admin workspace should be available from a dropdown opened from the upper-right three-line user menu.
+   - Menu items in that dropdown should include appropriate icons for the action they perform.
    - The authenticated checklist views should not repeat a `Signed in as ...` banner in the page body.
+   - Unauthenticated pages should not display the authenticated user menu.
+   - Unauthenticated pages should not display top navigation links such as Dashboard, Sign In, or Register.
+   - On unauthenticated pages, the `Checkit` header branding should not be a hyperlink.
 
 ## Recommended Technical Direction
 
@@ -66,6 +70,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 
 - Authentication must use `user_id` and password for login.
 - The login page must provide a self-service registration option for unauthenticated users.
+- The login page must provide a self-service forgot-password option for eligible non-admin users.
 - The system must store users in a `users` table.
 - The `users` table must include at least:
   - `id`
@@ -162,6 +167,37 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
 - The system should reject obviously weak passwords if a practical Rails-compatible approach is available.
 - Authentication failures must return a generic error message that does not reveal whether the `user_id` or password was incorrect.
 - The password change flow must require the initial default admin password to be replaced with a compliant password.
+
+### Forgot Password
+
+- The application must support a self-service forgot-password flow for non-admin users.
+- The flow must begin from the sign-in page.
+- The forgot-password request must require at least:
+  - `user_id`
+  - `email`
+- The server must verify that the submitted identity matches an eligible non-admin account before issuing a reset challenge.
+- Admin users must not be allowed to use the self-service forgot-password flow.
+- The server must send a one-time verification code to the account email address before a password reset is allowed.
+- Password reset verification must happen server-side.
+- Password reset verification codes must:
+  - be single-use
+  - expire after a defined interval
+  - be rate-limited for resend and verification attempts
+- The user must not be allowed to set a new password until the OTP has been verified.
+- After a successful password reset, the user should be able to sign in with the new password.
+
+#### Forgot Password Process Flow
+
+1. The user opens the sign-in page.
+2. The user selects the forgot-password option.
+3. The application collects `user_id` and `email`.
+4. The server validates that the submitted identity belongs to an eligible non-admin account.
+5. The server generates a password-reset OTP and sends it to the stored email address through Mailgun.
+6. The user is redirected to the password-reset verification page.
+7. The user enters the OTP.
+8. The server verifies the OTP and, if valid, allows access to the password-reset form.
+9. The user submits a new compliant password and confirmation.
+10. The server updates the password, clears the reset challenge state, and returns the user to the sign-in flow.
 
 ### Failed Login Lockout
 
