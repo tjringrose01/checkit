@@ -37,6 +37,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
    - Clicking the application name or logo in the header should return the user to the home screen.
    - User actions such as signing out and opening the admin workspace should be available from a dropdown opened from the upper-right three-line user menu.
    - Menu items in that dropdown should include appropriate icons for the action they perform.
+   - Menu items in that dropdown should use consistent left alignment for icons and labels, including sign-out actions rendered as buttons.
    - The authenticated checklist views should not repeat a `Signed in as ...` banner in the page body.
    - Unauthenticated pages should not display the authenticated user menu.
    - Unauthenticated pages should not display top navigation links such as Dashboard, Sign In, or Register.
@@ -356,6 +357,7 @@ Checkit is a checklist application with a web-based frontend and backend API. Th
   - build timestamp in the browser timezone
 - A shared authenticated header should expose the home link from the application name/logo.
 - The authenticated header should expose account actions from the upper-right user bubble menu instead of page-level sign-out/admin links.
+- The authenticated header dropdown should keep action rows consistently aligned whether the action is rendered as a link or a form-backed button.
 
 ### Sync Behavior
 
