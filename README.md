@@ -627,10 +627,12 @@ Create these Jenkins pipeline environment variables:
     - `test` -> `test`
     - `prod` -> `main`
   - If Jenkins builds the actual SCM branch named `main` and `BRANCH_TAG` is not overridden, the pipeline automatically treats it as `prod`
+  - If Jenkins builds a Git tag ref such as `refs/tags/v1.0.0`, the pipeline automatically treats it as `prod`
 - `APP_VERSION`
   - Optional release version such as `v0.3.0`
   - If set, Jenkins also tags and pushes `${DOCKER_IMAGE_REPOSITORY}:${APP_VERSION}`
   - If not set, the image still includes immutable Git SHA metadata and pushes the Git SHA tag
+  - For release-tag builds, the pipeline automatically derives `APP_VERSION` from the Git tag when the selector is something like `refs/tags/v1.0.0`
 - `MAILGUN_DOMAIN`
   - Mailgun sending domain
   - Example: `mg.tjrcade.com`
@@ -710,6 +712,23 @@ If you create separate Jenkins jobs for each environment, set `BRANCH_TAG` per j
 
 When `BRANCH_TAG=prod`, the pipeline checks out `main` from SCM and still tags the container as `prod`.
 When Jenkins directly builds the SCM branch named `main`, the pipeline also treats that build as `prod` automatically.
+When Jenkins directly builds a Git tag such as `refs/tags/v1.0.0`, the pipeline treats that build as `prod`, checks out the tag itself, and uses `v1.0.0` as `APP_VERSION`.
+
+#### Release Tag Build Configuration
+
+For production releases built from Git tags on `main`, configure the Jenkins job or multibranch/tag discovery to build the tag ref directly.
+
+- Branch specifier / ref:
+  - `refs/tags/v1.0.0`
+- Expected pipeline behavior:
+  - treats the build as `prod`
+  - checks out `refs/tags/v1.0.0`
+  - derives `APP_VERSION=v1.0.0`
+  - pushes:
+    - `${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPOSITORY}:prod`
+    - `${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPOSITORY}:v1.0.0`
+    - `${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPOSITORY}:${short_git_sha}`
+- Future release tags such as `refs/tags/v1.0.1` and `refs/tags/v1.1.0` follow the same flow automatically.
 
 #### Resulting Image Tags
 

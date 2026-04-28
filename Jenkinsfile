@@ -18,18 +18,35 @@ pipeline {
     stage('Checkout') {
       steps {
         script {
-          def normalizedInput = (env.BRANCH_TAG ?: env.BRANCH_NAME ?: 'dev')
+          def configuredBranchTag = env.BRANCH_TAG?.trim()
+          def rawSelector = (env.TAG_NAME ?: env.BRANCH_NAME ?: configuredBranchTag ?: 'dev').trim()
+          def normalizedInput = rawSelector
             .toLowerCase()
-            .replaceAll(/[^a-z0-9._-]+/, '-')
+            .replaceAll(/[^a-z0-9._/-]+/, '-')
+          def releaseTag = null
 
-          if (normalizedInput == 'main') {
+          if (rawSelector.startsWith('refs/tags/')) {
+            releaseTag = rawSelector.replaceFirst(/^refs\/tags\//, '')
+          } else if (rawSelector ==~ /^v\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/) {
+            releaseTag = rawSelector
+          } else if ((env.APP_VERSION ?: '').trim() ==~ /^v\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/) {
+            releaseTag = env.APP_VERSION.trim()
+          }
+
+          if (releaseTag) {
+            env.BRANCH_TAG = 'prod'
+            env.SCM_BRANCH = "refs/tags/${releaseTag}"
+            env.APP_VERSION = (env.APP_VERSION ?: releaseTag).trim()
+          } else if (normalizedInput == 'main') {
             env.BRANCH_TAG = 'prod'
             env.SCM_BRANCH = 'main'
           } else {
-            env.BRANCH_TAG = normalizedInput
+            env.BRANCH_TAG = (configuredBranchTag ?: normalizedInput)
+              .toLowerCase()
+              .replaceAll(/[^a-z0-9._-]+/, '-')
 
             if (!(env.BRANCH_TAG in ['dev', 'test', 'prod'])) {
-              error("BRANCH_TAG must be one of: dev, test, prod. A branch build of 'main' is treated as 'prod'.")
+              error("BRANCH_TAG must be one of: dev, test, prod. A branch build of 'main' or a release tag like 'refs/tags/v1.0.0' is treated as 'prod'.")
             }
 
             env.SCM_BRANCH = env.BRANCH_TAG == 'prod' ? 'main' : env.BRANCH_TAG
@@ -38,7 +55,7 @@ pipeline {
 
         checkout([
           $class: 'GitSCM',
-          branches: [[name: "*/${env.SCM_BRANCH}"]],
+          branches: [[name: env.SCM_BRANCH.startsWith('refs/tags/') ? env.SCM_BRANCH : "*/${env.SCM_BRANCH}"]],
           doGenerateSubmoduleConfigurations: false,
           extensions: scm.extensions ?: [],
           submoduleCfg: [],
