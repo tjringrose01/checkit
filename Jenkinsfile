@@ -22,7 +22,7 @@ pipeline {
           def rawSelector = (env.TAG_NAME ?: env.BRANCH_NAME ?: configuredBranchTag ?: 'dev').trim()
           def normalizedInput = rawSelector
             .toLowerCase()
-            .replaceAll(/[^a-z0-9._/-]+/, '-')
+            .replaceAll("[^a-z0-9._/-]+", '-')
           def releaseTag = null
 
           if (rawSelector.startsWith('refs/tags/')) {
