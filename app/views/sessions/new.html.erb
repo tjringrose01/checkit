@@ -1,0 +1,26 @@
+<section class="auth-panel">
+  <h1>Sign In</h1>
+
+  <%= form_with url: session_path, method: :post do |form| %>
+    <div>
+      <%= form.label :user_id, "Username" %>
+      <%= form.text_field :user_id, required: true, autocomplete: "username" %>
+    </div>
+
+    <div>
+      <%= form.label :password %>
+      <%= form.password_field :password, required: true, autocomplete: "current-password" %>
+    </div>
+
+    <%= form.submit "Sign in", class: "primary-button" %>
+  <% end %>
+
+  <p style="margin-top: 16px;">
+    <%= link_to "Forgot password?", new_password_reset_request_path %>
+  </p>
+
+  <p style="margin-top: 16px;">
+    Need an account?
+    <%= link_to "Register", new_registration_path %>
+  </p>
+</section>

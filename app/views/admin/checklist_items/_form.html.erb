@@ -1,0 +1,29 @@
+<%= form_with model: [ :admin, checklist, checklist_item ] do |form| %>
+  <% if checklist_item.errors.any? %>
+    <div class="flash">
+      <%= checklist_item.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div class="form-grid">
+    <div class="form-grid__full">
+      <%= form.label :item_text %>
+      <%= form.text_area :item_text, rows: 4, required: true %>
+    </div>
+
+    <div>
+      <%= form.label :sort_order %>
+      <%= form.number_field :sort_order, min: 0, required: true %>
+    </div>
+
+    <div>
+      <%= form.label :desired_completion_offset_minutes, "Desired time in minutes from checklist start" %>
+      <%= form.number_field :desired_completion_offset_minutes, min: 0, required: true %>
+    </div>
+  </div>
+
+  <div class="admin-actions">
+    <%= form.submit class: "primary-button" %>
+    <%= link_to "Cancel", admin_checklist_path(checklist), class: "secondary-link" %>
+  </div>
+<% end %>

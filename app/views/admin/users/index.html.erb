@@ -1,0 +1,54 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Administration</p>
+    <h1>User Administration</h1>
+    <p>Manage user access, reset passwords, unlock accounts, and remove users.</p>
+  </div>
+
+  <div class="admin-actions">
+    <%= link_to "Back To Admin Workspace", admin_root_path, class: "secondary-link" %>
+    <%= link_to "Back To User View", root_path, class: "secondary-link" %>
+  </div>
+</section>
+
+<section class="checklists">
+  <article class="checklist-card">
+    <header class="checklist-card__header">
+      <div>
+        <p class="eyebrow">Access Summary</p>
+        <h2><%= pluralize(@users.count, "User") %></h2>
+      </div>
+    </header>
+
+    <p>Locked users: <strong><%= @locked_users.count %></strong></p>
+    <p>Disabled users: <strong><%= @disabled_users.count %></strong></p>
+  </article>
+
+  <article class="checklist-card">
+    <header class="checklist-card__header">
+      <div>
+        <p class="eyebrow">User Catalog</p>
+        <h2>All Users</h2>
+      </div>
+    </header>
+
+    <ul class="checklist-items">
+      <% @users.each do |user| %>
+        <li class="checklist-item">
+          <div class="checklist-item__content">
+            <h3><%= [user.first_name, user.last_name].compact_blank.join(" ").presence || user.user_id %></h3>
+            <p>Username: <%= user.user_id %></p>
+            <p><%= user.email %></p>
+            <p>Role: <%= user.role %></p>
+            <p>Status: <%= user.enabled? ? "Enabled" : "Disabled" %></p>
+            <p>Locked: <%= user.locked? ? "Yes" : "No" %></p>
+          </div>
+
+          <div class="admin-actions">
+            <%= link_to "Manage User", admin_user_path(user), class: "primary-link" %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+  </article>
+</section>

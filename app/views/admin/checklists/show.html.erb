@@ -1,0 +1,69 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Checklist Management</p>
+    <h1><%= @checklist.title %></h1>
+    <p>Manage checklist metadata, checklist items, and CSV imports for this checklist in one workspace.</p>
+  </div>
+
+  <div class="admin-actions">
+    <%= link_to "Back To Checklist Manager", admin_checklists_path, class: "secondary-link" %>
+    <%= link_to "Back To Admin Workspace", admin_root_path, class: "secondary-link" %>
+    <%= link_to "Add Item", new_admin_checklist_checklist_item_path(@checklist), class: "primary-link" %>
+  </div>
+</section>
+
+<section class="checklists">
+  <article class="checklist-card">
+    <header class="checklist-card__header">
+      <div>
+        <p class="eyebrow">Checklist Details</p>
+        <h2>Edit Checklist</h2>
+      </div>
+    </header>
+
+    <%= render "form", checklist: @checklist %>
+  </article>
+
+  <article class="checklist-card">
+    <header class="checklist-card__header">
+      <div>
+        <p class="eyebrow"><%= @checklist.status.titleize %></p>
+        <h2><%= pluralize(@checklist.checklist_items.count, "Item") %></h2>
+      </div>
+
+      <% if @checklist.notes.present? %>
+        <p class="checklist-card__notes"><%= @checklist.notes %></p>
+      <% end %>
+    </header>
+
+    <p><strong>Start:</strong> <%= formatted_wall_clock_time(@checklist.start_at) %></p>
+
+    <ul class="checklist-items">
+      <% @checklist.checklist_items.each do |checklist_item| %>
+        <li class="checklist-item">
+          <div class="checklist-item__content">
+            <div class="checklist-item__text"><%= render_checklist_item_content(checklist_item) %></div>
+            <div class="checklist-item__meta">
+              <p>Sort order: <%= checklist_item.sort_order %></p>
+              <p>Desired: <%= formatted_checklist_offset(checklist_item.desired_completion_offset_minutes) %></p>
+              <p>Target time: <%= formatted_wall_clock_time(checklist_item.desired_completion_at(reference_time: Time.current)) %></p>
+            </div>
+          </div>
+
+          <div class="admin-actions">
+            <%= link_to "Edit Item", edit_admin_checklist_checklist_item_path(@checklist, checklist_item), class: "secondary-link" %>
+            <%= button_to "Delete Item", admin_checklist_checklist_item_path(@checklist, checklist_item), method: :delete, class: "secondary-button" %>
+          </div>
+        </li>
+      <% end %>
+    </ul>
+
+    <div class="admin-panel">
+      <%= form_with url: admin_checklist_checklist_item_import_path(@checklist), multipart: true, class: "csv-form" do |form| %>
+        <%= form.label :file, "CSV import" %>
+        <%= form.file_field :file, accept: ".csv,text/csv", required: true %>
+        <%= form.submit "Import CSV", class: "secondary-button" %>
+      <% end %>
+    </div>
+  </article>
+</section>

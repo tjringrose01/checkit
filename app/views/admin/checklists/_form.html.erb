@@ -1,0 +1,38 @@
+<%= form_with model: [ :admin, checklist ] do |form| %>
+  <% if checklist.errors.any? %>
+    <div class="flash">
+      <%= checklist.errors.full_messages.to_sentence %>
+    </div>
+  <% end %>
+
+  <div class="form-grid">
+    <div>
+      <%= form.label :title %>
+      <%= form.text_field :title, required: true %>
+    </div>
+
+    <div>
+      <%= form.label :status %>
+      <%= form.select :status, Checklist.statuses.keys.map { |status| [status.titleize, status] }, required: true %>
+    </div>
+
+    <div>
+      <%= form.label :start_at, "Checklist start time" %>
+      <%= form.text_field :start_at,
+                          value: time_field_value(checklist.start_at),
+                          placeholder: "07:00 PM",
+                          pattern: "(0?[1-9]|1[0-2]):[0-5][0-9]\\s?(AM|PM|am|pm)",
+                          required: true %>
+    </div>
+
+    <div class="form-grid__full">
+      <%= form.label :notes %>
+      <%= form.text_area :notes, rows: 5 %>
+    </div>
+  </div>
+
+  <div class="admin-actions">
+    <%= form.submit class: "primary-button" %>
+    <%= link_to "Cancel", checklist.persisted? ? admin_checklist_path(checklist) : admin_checklists_path, class: "secondary-link" %>
+  </div>
+<% end %>

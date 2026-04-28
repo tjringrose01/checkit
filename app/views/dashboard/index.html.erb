@@ -1,0 +1,36 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Checklist Workspace</p>
+    <h1>Checkit</h1>
+  </div>
+</section>
+
+<section class="checklists">
+  <% if @checklists.any? %>
+    <% @checklists.each do |checklist| %>
+      <article class="checklist-card">
+        <header class="checklist-card__header">
+          <div>
+            <p class="eyebrow"><%= checklist.status.titleize %> Checklist</p>
+            <h2><%= checklist.title %></h2>
+          </div>
+
+          <p><%= pluralize(checklist.checklist_items.count, "item") %></p>
+        </header>
+
+        <% if checklist.notes.present? %>
+          <p class="checklist-card__notes"><%= checklist.notes %></p>
+        <% end %>
+
+        <p>
+          <%= link_to "Open Checklist", checklist_path(checklist), class: "primary-link" %>
+        </p>
+      </article>
+    <% end %>
+  <% else %>
+    <article class="empty-state">
+      <h2>No active checklists yet</h2>
+      <p>Active checklists will appear here once an administrator publishes them.</p>
+    </article>
+  <% end %>
+</section>

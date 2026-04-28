@@ -1,0 +1,21 @@
+services:
+  web:
+    build:
+      context: .
+    command: bundle exec rails server -b 0.0.0.0 -p 3000
+    environment:
+      RAILS_ENV: development
+      BINDING: 0.0.0.0
+      PORT: 3000
+      SECRET_KEY_BASE: development-secret-key-base
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - bundle:/usr/local/bundle
+    stdin_open: true
+    tty: true
+
+volumes:
+  bundle:

@@ -1,0 +1,41 @@
+<section class="auth-panel auth-panel--wide">
+  <h1>Register</h1>
+  <p>Create a user account and verify your email to finish registration.</p>
+
+  <%= form_with model: @user, url: registration_path, method: :post do |form| %>
+    <div>
+      <%= form.label :first_name, "First name" %>
+      <%= form.text_field :first_name, autocomplete: "given-name" %>
+    </div>
+
+    <div>
+      <%= form.label :last_name, "Last name" %>
+      <%= form.text_field :last_name, autocomplete: "family-name" %>
+    </div>
+
+    <div>
+      <%= form.label :user_id, "Username" %>
+      <%= form.text_field :user_id, required: true, autocomplete: "username" %>
+    </div>
+
+    <div>
+      <%= form.label :email %>
+      <%= form.email_field :email, required: true, autocomplete: "email" %>
+    </div>
+
+    <div>
+      <%= form.label :password %>
+      <%= form.password_field :password, required: true, minlength: 12, autocomplete: "new-password" %>
+    </div>
+
+    <div>
+      <%= form.label :password_confirmation %>
+      <%= form.password_field :password_confirmation, required: true, minlength: 12, autocomplete: "new-password" %>
+    </div>
+
+    <div style="margin-top: 16px;" class="admin-actions">
+      <%= form.submit "Register", class: "primary-button" %>
+      <%= link_to "Back To Sign In", new_session_path, class: "secondary-link" %>
+    </div>
+  <% end %>
+</section>

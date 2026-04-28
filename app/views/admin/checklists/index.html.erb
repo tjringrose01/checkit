@@ -1,0 +1,37 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Checklist Management</p>
+    <h1>Checklist Manager</h1>
+    <p>Start with a checklist, then open it to manage its items and CSV imports.</p>
+  </div>
+
+  <div class="admin-actions">
+    <%= link_to "Back To Admin Workspace", admin_root_path, class: "secondary-link" %>
+    <%= link_to "Back To User View", root_path, class: "secondary-link" %>
+    <%= link_to "New Checklist", new_admin_checklist_path, class: "primary-link" %>
+  </div>
+</section>
+
+<section class="checklists">
+  <% @checklists.each do |checklist| %>
+    <article class="checklist-card">
+      <header class="checklist-card__header">
+        <div>
+          <p class="eyebrow"><%= checklist.status.titleize %></p>
+          <h2><%= checklist.title %></h2>
+        </div>
+
+        <p><%= pluralize(checklist.checklist_items.count, "item") %></p>
+      </header>
+
+      <% if checklist.notes.present? %>
+        <p><%= checklist.notes %></p>
+      <% end %>
+
+      <div class="admin-actions">
+        <%= link_to "Open Checklist", admin_checklist_path(checklist), class: "primary-link" %>
+        <%= button_to "Delete", admin_checklist_path(checklist), method: :delete, class: "secondary-button" %>
+      </div>
+    </article>
+  <% end %>
+</section>

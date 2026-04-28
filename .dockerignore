@@ -1,0 +1,11 @@
+.git
+.github
+.bundle
+log/*
+tmp/*
+tmp/**/*
+storage/*
+vendor/bundle
+node_modules
+coverage
+.DS_Store

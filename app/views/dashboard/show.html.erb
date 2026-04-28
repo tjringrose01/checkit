@@ -1,0 +1,78 @@
+<section class="page-header">
+  <div>
+    <p class="eyebrow">Checklist Workspace</p>
+    <h1><%= @checklist.title %></h1>
+  </div>
+
+  <div class="admin-actions">
+    <%= link_to "Back To Checklists", root_path, class: "secondary-link" %>
+  </div>
+</section>
+
+<section class="checklists">
+  <article class="checklist-card" data-checklist-id="<%= @checklist.id %>">
+    <header class="checklist-card__header">
+      <div>
+        <p class="eyebrow"><%= @checklist.status.titleize %> Checklist</p>
+        <h2><%= pluralize(@checklist.checklist_items.count, "Item") %></h2>
+        <p data-role="completion-percentage"><strong><%= checklist_completion_percentage(@checklist) %>% complete</strong></p>
+      </div>
+
+      <% if @checklist.notes.present? %>
+        <p class="checklist-card__notes"><%= @checklist.notes %></p>
+      <% end %>
+    </header>
+
+    <p><strong>Start:</strong> <%= formatted_wall_clock_time(@checklist.start_at) %></p>
+
+    <div class="admin-actions" style="margin-bottom: 16px;">
+      <%= button_to "Reset Checklist",
+                    checklist_reset_path(@checklist),
+                    method: :patch,
+                    class: "secondary-button",
+                    form: { data: { remote_reset: true } } %>
+    </div>
+
+    <ul class="checklist-items">
+      <% @checklist.checklist_items.each do |checklist_item| %>
+        <% completion = checklist_completion_for(checklist_item) %>
+        <% completed = completion&.completed? %>
+
+        <li class="checklist-item <%= "checklist-item--complete" if completed %>"
+            data-checklist-item-id="<%= checklist_item.id %>"
+            data-target-offset-minutes="<%= checklist_item.desired_completion_offset_minutes %>">
+          <div class="checklist-item__content">
+            <div class="checklist-item__text"><%= render_checklist_item_content(checklist_item) %></div>
+            <dl>
+              <div>
+                <dt>Desired</dt>
+                <dd><%= formatted_checklist_offset(checklist_item.desired_completion_offset_minutes) %></dd>
+              </div>
+              <div>
+                <dt>Target time</dt>
+                <dd><%= formatted_wall_clock_time(checklist_item.desired_completion_at(reference_time: Time.current)) %></dd>
+              </div>
+              <div>
+                <dt>Actual</dt>
+                <dd data-role="actual-time"><%= browser_local_clock_time(completion&.actual_completed_at) %></dd>
+              </div>
+              <div>
+                <dt>Deviation</dt>
+                <dd data-role="deviation"><%= formatted_deviation(completion) %></dd>
+              </div>
+            </dl>
+          </div>
+
+          <%= button_to checklist_item_completion_path(checklist_item),
+                        method: :patch,
+                        params: { completed: !completed, timezone_offset_minutes: 0 },
+                        class: completed ? "secondary-button" : "primary-button",
+                        form: { data: { remote_completion: true } },
+                        data: { role: "completion-button" } do %>
+            <%= completed ? "Mark Incomplete" : "Complete Item" %>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  </article>
+</section>
