@@ -18,15 +18,22 @@ pipeline {
     stage('Checkout') {
       steps {
         script {
-          env.BRANCH_TAG = (env.BRANCH_TAG ?: env.BRANCH_NAME ?: 'dev')
+          def normalizedInput = (env.BRANCH_TAG ?: env.BRANCH_NAME ?: 'dev')
             .toLowerCase()
             .replaceAll(/[^a-z0-9._-]+/, '-')
 
-          if (!(env.BRANCH_TAG in ['dev', 'test', 'prod'])) {
-            error("BRANCH_TAG must be one of: dev, test, prod")
-          }
+          if (normalizedInput == 'main') {
+            env.BRANCH_TAG = 'prod'
+            env.SCM_BRANCH = 'main'
+          } else {
+            env.BRANCH_TAG = normalizedInput
 
-          env.SCM_BRANCH = env.BRANCH_TAG == 'prod' ? 'main' : env.BRANCH_TAG
+            if (!(env.BRANCH_TAG in ['dev', 'test', 'prod'])) {
+              error("BRANCH_TAG must be one of: dev, test, prod. A branch build of 'main' is treated as 'prod'.")
+            }
+
+            env.SCM_BRANCH = env.BRANCH_TAG == 'prod' ? 'main' : env.BRANCH_TAG
+          }
         }
 
         checkout([

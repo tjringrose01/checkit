@@ -626,6 +626,7 @@ Create these Jenkins pipeline environment variables:
     - `dev` -> `dev`
     - `test` -> `test`
     - `prod` -> `main`
+  - If Jenkins builds the actual SCM branch named `main` and `BRANCH_TAG` is not overridden, the pipeline automatically treats it as `prod`
 - `APP_VERSION`
   - Optional release version such as `v0.3.0`
   - If set, Jenkins also tags and pushes `${DOCKER_IMAGE_REPOSITORY}:${APP_VERSION}`
@@ -708,6 +709,7 @@ If you create separate Jenkins jobs for each environment, set `BRANCH_TAG` per j
 - Production job: `BRANCH_TAG=prod`
 
 When `BRANCH_TAG=prod`, the pipeline checks out `main` from SCM and still tags the container as `prod`.
+When Jenkins directly builds the SCM branch named `main`, the pipeline also treats that build as `prod` automatically.
 
 #### Resulting Image Tags
 
