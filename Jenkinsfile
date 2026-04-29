@@ -19,7 +19,14 @@ pipeline {
       steps {
         script {
           def configuredBranchTag = env.BRANCH_TAG?.trim()
-          def rawSelector = (env.TAG_NAME ?: env.BRANCH_NAME ?: configuredBranchTag ?: 'dev').trim()
+          def scmSelector = ''
+          try {
+            scmSelector = scm?.branches?.getAt(0)?.name?.trim() ?: ''
+          } catch (ignored) {
+            scmSelector = ''
+          }
+
+          def rawSelector = (env.TAG_NAME ?: scmSelector ?: env.BRANCH_NAME ?: configuredBranchTag ?: 'dev').trim()
           def normalizedInput = rawSelector
             .toLowerCase()
             .replaceAll("[^a-z0-9._/-]+", '-')
