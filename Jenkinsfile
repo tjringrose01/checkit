@@ -25,6 +25,9 @@ pipeline {
             .replaceAll("[^a-z0-9._/-]+", '-')
           def releaseTag = null
 
+          env.RELEASE_TAG = ''
+          env.RELEASE_SOURCE_BRANCH = ''
+
           if (rawSelector.startsWith('refs/tags/')) {
             releaseTag = rawSelector.replaceFirst(/^refs\/tags\//, '')
           } else if (rawSelector ==~ /^v\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/) {
@@ -35,6 +38,8 @@ pipeline {
 
           if (releaseTag) {
             env.BRANCH_TAG = 'prod'
+            env.RELEASE_TAG = releaseTag
+            env.RELEASE_SOURCE_BRANCH = 'main'
             env.SCM_BRANCH = "refs/tags/${releaseTag}"
             env.APP_VERSION = (env.APP_VERSION ?: releaseTag).trim()
           } else if (normalizedInput == 'main') {
@@ -61,6 +66,30 @@ pipeline {
           submoduleCfg: [],
           userRemoteConfigs: scm.userRemoteConfigs
         ])
+      }
+    }
+
+    stage('Validate Release Tag') {
+      when {
+        expression { env.RELEASE_TAG?.trim() }
+      }
+
+      steps {
+        sh '''
+          set -eu
+          git fetch --no-tags origin main
+          current_tag="$(git describe --tags --exact-match 2>/dev/null || true)"
+
+          if [ "$current_tag" != "${RELEASE_TAG}" ]; then
+            echo "Checked out tag '$current_tag' does not match expected release tag '${RELEASE_TAG}'."
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "Release tag '${RELEASE_TAG}' is not reachable from origin/main."
+            exit 1
+          fi
+        '''
       }
     }
 

@@ -417,6 +417,9 @@ Reference used for these conventions:
 - CI builds must publish an immutable image tag based on the Git commit SHA.
 - CI builds may also publish a semantic version tag when a release version is explicitly provided.
 - Environment tags such as `dev`, `test`, and `prod` are deployment aliases and must not be treated as the only source of version identity.
+- Production release tags such as `v1.0.0` must be created from `main`.
+- A Jenkins build started from a release tag ref such as `refs/tags/v1.0.0` must be treated as a production build sourced from `main`.
+- The Jenkins pipeline must reject release tags that do not resolve to a commit reachable from `main`.
 - The application footer must display either:
   - an explicit application version, or
   - an immutable source revision such as the Git SHA
@@ -479,6 +482,18 @@ Use descriptive feature branch names, for example:
 4. Open a pull request from the feature branch into `dev`.
 5. Keep `main` isolated from routine development work.
 6. The repository owner decides if and when `dev` changes move to `main`.
+
+### Release Workflow
+
+1. Promote the intended release from `dev` into `main`.
+2. Create a semantic version tag such as `v1.0.0` on `main`.
+3. Trigger the Jenkins production pipeline from the tag ref, for example `refs/tags/v1.0.0`.
+4. Jenkins must treat that tag-triggered build as a production build.
+5. Jenkins must validate that the tagged commit is reachable from `main`.
+6. Jenkins must publish the production image tags for:
+   - `prod`
+   - the semantic version tag
+   - the immutable Git SHA
 
 ## Local Development
 
@@ -589,22 +604,23 @@ Do not use a bind mount like:
 ### Jenkins Container Build And Push
 
 - The repository includes a `Jenkinsfile` that:
-  1. checks out the SCM branch selected from `BRANCH_TAG`
-  2. builds the application container from `Dockerfile`
-  3. runs Brakeman SAST and writes the scanner output into `reports/` in the repository workspace
-  4. bakes build metadata into the image for the shared application footer:
+  1. checks out the SCM branch or release tag selected by Jenkins
+  2. validates that release-tag builds come from `main`
+  3. builds the application container from `Dockerfile`
+  4. runs Brakeman SAST and writes the scanner output into `reports/` in the repository workspace
+  5. bakes build metadata into the image for the shared application footer:
      - application name
      - application version when available
      - Git commit SHA
      - branch or environment
      - Jenkins build number
      - build timestamp
-  5. tags the image with:
+  6. tags the image with:
      - the short Git SHA
      - the sanitized environment tag
      - the explicit application version, when provided
-  6. logs into the Docker registry with Jenkins-managed credentials
-  7. pushes the generated tags to the configured repository
+  7. logs into the Docker registry with Jenkins-managed credentials
+  8. pushes the generated tags to the configured repository
 
 #### Jenkins Configuration
 
@@ -712,7 +728,7 @@ If you create separate Jenkins jobs for each environment, set `BRANCH_TAG` per j
 
 When `BRANCH_TAG=prod`, the pipeline checks out `main` from SCM and still tags the container as `prod`.
 When Jenkins directly builds the SCM branch named `main`, the pipeline also treats that build as `prod` automatically.
-When Jenkins directly builds a Git tag such as `refs/tags/v1.0.0`, the pipeline treats that build as `prod`, checks out the tag itself, and uses `v1.0.0` as `APP_VERSION`.
+When Jenkins directly builds a Git tag such as `refs/tags/v1.0.0`, the pipeline treats that build as `prod`, checks out the tag itself, validates that the tagged commit is reachable from `main`, and uses `v1.0.0` as `APP_VERSION`.
 
 #### Release Tag Build Configuration
 
@@ -723,6 +739,7 @@ For production releases built from Git tags on `main`, configure the Jenkins job
 - Expected pipeline behavior:
   - treats the build as `prod`
   - checks out `refs/tags/v1.0.0`
+  - validates that the tagged commit is part of `main`
   - derives `APP_VERSION=v1.0.0`
   - pushes:
     - `${DOCKER_REGISTRY}/${DOCKER_IMAGE_REPOSITORY}:prod`
