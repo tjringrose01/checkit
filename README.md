@@ -644,6 +644,7 @@ Create these Jenkins pipeline environment variables:
     - `prod` -> `main`
   - If Jenkins builds the actual SCM branch named `main` and `BRANCH_TAG` is not overridden, the pipeline automatically treats it as `prod`
   - If Jenkins builds a Git tag ref such as `refs/tags/v1.0.0`, the pipeline automatically treats it as `prod`
+  - For tag-triggered jobs, the pipeline prefers the actual SCM ref from Jenkins over any default `BRANCH_TAG` value so a branch-level default like `dev` does not override `refs/tags/v1.0.0`
 - `APP_VERSION`
   - Optional release version such as `v0.3.0`
   - If set, Jenkins also tags and pushes `${DOCKER_IMAGE_REPOSITORY}:${APP_VERSION}`
