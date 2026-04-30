@@ -112,16 +112,17 @@ pipeline {
             script: 'git rev-parse HEAD',
             returnStdout: true
           ).trim()
-          env.APP_VERSION = (env.APP_VERSION ?: sh(
+          env.EFFECTIVE_APP_VERSION = (env.RELEASE_TAG ?: env.APP_VERSION ?: sh(
             script: 'git describe --tags --exact-match 2>/dev/null || true',
             returnStdout: true
           ).trim()) ?: ''
+          env.APP_VERSION = env.EFFECTIVE_APP_VERSION
           env.APP_BUILD_TIMESTAMP = sh(
             script: 'date -u +%Y-%m-%dT%H:%M:%SZ',
             returnStdout: true
           ).trim()
           env.IMAGE_URI = "${env.DOCKER_REGISTRY}/${env.DOCKER_IMAGE_REPOSITORY}"
-          env.RELEASE_IMAGE_TAG = (env.BRANCH_TAG == 'prod' && env.APP_VERSION?.trim()) ? "prod-${env.APP_VERSION}" : ''
+          env.RELEASE_IMAGE_TAG = (env.BRANCH_TAG == 'prod' && env.EFFECTIVE_APP_VERSION?.trim()) ? "prod-${env.EFFECTIVE_APP_VERSION}" : ''
         }
 
         sh '''
@@ -131,14 +132,14 @@ pipeline {
             --build-arg APP_BUILD_ENVIRONMENT="${BRANCH_TAG:-dev}" \
             --build-arg APP_BUILD_NUMBER="${BUILD_NUMBER:-local}" \
             --build-arg APP_BUILD_TIMESTAMP="${APP_BUILD_TIMESTAMP:-unknown}" \
-            --build-arg APP_VERSION="${APP_VERSION:-}" \
+            --build-arg APP_VERSION="${EFFECTIVE_APP_VERSION:-}" \
             --build-arg APP_GIT_SHA="${GIT_SHA_FULL:-unknown}" \
             --tag "${IMAGE_URI}:${GIT_SHA_SHORT:-unknown}" \
             --tag "${IMAGE_URI}:${BRANCH_TAG:-dev}" \
             .
 
-          if [ -n "${APP_VERSION:-}" ]; then
-            docker tag "${IMAGE_URI}:${GIT_SHA_SHORT:-unknown}" "${IMAGE_URI}:${APP_VERSION}"
+          if [ -n "${EFFECTIVE_APP_VERSION:-}" ]; then
+            docker tag "${IMAGE_URI}:${GIT_SHA_SHORT:-unknown}" "${IMAGE_URI}:${EFFECTIVE_APP_VERSION}"
           fi
 
           if [ -n "${RELEASE_IMAGE_TAG:-}" ]; then
@@ -181,8 +182,8 @@ pipeline {
             echo "${DOCKER_PASSWORD}" | docker login "${DOCKER_REGISTRY}" --username "${DOCKER_USERNAME}" --password-stdin
             docker push "${IMAGE_URI}:${GIT_SHA_SHORT:-unknown}"
             docker push "${IMAGE_URI}:${BRANCH_TAG:-dev}"
-            if [ -n "${APP_VERSION:-}" ]; then
-              docker push "${IMAGE_URI}:${APP_VERSION}"
+            if [ -n "${EFFECTIVE_APP_VERSION:-}" ]; then
+              docker push "${IMAGE_URI}:${EFFECTIVE_APP_VERSION}"
             fi
             if [ -n "${RELEASE_IMAGE_TAG:-}" ]; then
               docker push "${IMAGE_URI}:${RELEASE_IMAGE_TAG}"
@@ -199,8 +200,8 @@ pipeline {
       sh '''
         set +e
         docker image rm "${IMAGE_URI}:${GIT_SHA_SHORT:-unknown}" "${IMAGE_URI}:${BRANCH_TAG:-dev}" >/dev/null 2>&1 || true
-        if [ -n "${APP_VERSION:-}" ]; then
-          docker image rm "${IMAGE_URI}:${APP_VERSION}" >/dev/null 2>&1 || true
+        if [ -n "${EFFECTIVE_APP_VERSION:-}" ]; then
+          docker image rm "${IMAGE_URI}:${EFFECTIVE_APP_VERSION}" >/dev/null 2>&1 || true
         fi
         if [ -n "${RELEASE_IMAGE_TAG:-}" ]; then
           docker image rm "${IMAGE_URI}:${RELEASE_IMAGE_TAG}" >/dev/null 2>&1 || true
@@ -210,8 +211,8 @@ pipeline {
     success {
       script {
         def pushedTags = ["${IMAGE_URI}:${env.GIT_SHA_SHORT}", "${IMAGE_URI}:${env.BRANCH_TAG}"]
-        if (env.APP_VERSION?.trim()) {
-          pushedTags << "${env.IMAGE_URI}:${env.APP_VERSION}"
+        if (env.EFFECTIVE_APP_VERSION?.trim()) {
+          pushedTags << "${env.IMAGE_URI}:${env.EFFECTIVE_APP_VERSION}"
         }
         if (env.RELEASE_IMAGE_TAG?.trim()) {
           pushedTags << "${env.IMAGE_URI}:${env.RELEASE_IMAGE_TAG}"

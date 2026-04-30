@@ -651,6 +651,7 @@ Create these Jenkins pipeline environment variables:
   - If set, Jenkins also tags and pushes `${DOCKER_IMAGE_REPOSITORY}:${APP_VERSION}`
   - If not set, the image still includes immutable Git SHA metadata and pushes the Git SHA tag
   - For release-tag builds, the pipeline automatically derives `APP_VERSION` from the Git tag when the selector is something like `refs/tags/v1.0.0`
+  - For release-tag builds, the published Docker version tag comes from the checked-out Git tag even if no explicit Jenkins environment variable is set
 - `MAILGUN_DOMAIN`
   - Mailgun sending domain
   - Example: `mg.tjrcade.com`
