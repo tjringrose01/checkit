@@ -120,6 +120,7 @@ pipeline {
             returnStdout: true
           ).trim()
           env.IMAGE_URI = "${env.DOCKER_REGISTRY}/${env.DOCKER_IMAGE_REPOSITORY}"
+          env.RELEASE_IMAGE_TAG = (env.BRANCH_TAG == 'prod' && env.APP_VERSION?.trim()) ? "prod-${env.APP_VERSION}" : ''
         }
 
         sh '''
@@ -137,6 +138,10 @@ pipeline {
 
           if [ -n "${APP_VERSION:-}" ]; then
             docker tag "${IMAGE_URI}:${GIT_SHA_SHORT:-unknown}" "${IMAGE_URI}:${APP_VERSION}"
+          fi
+
+          if [ -n "${RELEASE_IMAGE_TAG:-}" ]; then
+            docker tag "${IMAGE_URI}:${GIT_SHA_SHORT:-unknown}" "${IMAGE_URI}:${RELEASE_IMAGE_TAG}"
           fi
         '''
       }
@@ -178,6 +183,9 @@ pipeline {
             if [ -n "${APP_VERSION:-}" ]; then
               docker push "${IMAGE_URI}:${APP_VERSION}"
             fi
+            if [ -n "${RELEASE_IMAGE_TAG:-}" ]; then
+              docker push "${IMAGE_URI}:${RELEASE_IMAGE_TAG}"
+            fi
             docker logout "${DOCKER_REGISTRY}"
           '''
         }
@@ -193,6 +201,9 @@ pipeline {
         if [ -n "${APP_VERSION:-}" ]; then
           docker image rm "${IMAGE_URI}:${APP_VERSION}" >/dev/null 2>&1 || true
         fi
+        if [ -n "${RELEASE_IMAGE_TAG:-}" ]; then
+          docker image rm "${IMAGE_URI}:${RELEASE_IMAGE_TAG}" >/dev/null 2>&1 || true
+        fi
       '''
     }
     success {
@@ -200,6 +211,9 @@ pipeline {
         def pushedTags = ["${IMAGE_URI}:${env.GIT_SHA_SHORT}", "${IMAGE_URI}:${env.BRANCH_TAG}"]
         if (env.APP_VERSION?.trim()) {
           pushedTags << "${env.IMAGE_URI}:${env.APP_VERSION}"
+        }
+        if (env.RELEASE_IMAGE_TAG?.trim()) {
+          pushedTags << "${env.IMAGE_URI}:${env.RELEASE_IMAGE_TAG}"
         }
         echo "Pushed ${pushedTags.join(', ')}"
       }
